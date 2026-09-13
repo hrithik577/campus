@@ -6,14 +6,19 @@ import {
   Users, 
   Accessibility, 
   Clock, 
-  Wrench,
-  BookOpen,
-  Utensils,
-  Dumbbell,
-  Home,
-  Car,
-  ShieldAlert,
-  Sparkles
+  Wrench, 
+  BookOpen, 
+  Utensils, 
+  Dumbbell, 
+  Home, 
+  Car, 
+  ShieldAlert, 
+  Sparkles,
+  ShoppingBag,
+  HeartPulse,
+  Trophy,
+  Activity,
+  UtensilsCrossed
 } from 'lucide-react';
 import { useCampusStore } from '../../services/campusStore';
 import { BuildingCategory } from '../../types/campus';
@@ -28,12 +33,17 @@ export const MapControls: React.FC = () => {
 
   const categories: { key: BuildingCategory | 'all'; label: string; icon: React.ElementType }[] = [
     { key: 'all', label: 'All', icon: Layers },
-    { key: 'academic', label: 'Academic', icon: BookOpen },
-    { key: 'labs', label: 'Labs', icon: Sparkles },
+    { key: 'hostels', label: 'Hostel', icon: Home },
+    { key: 'mess', label: 'Mess', icon: UtensilsCrossed },
+    { key: 'mart', label: 'Student Mart', icon: ShoppingBag },
+    { key: 'mrc', label: 'College MRC', icon: HeartPulse },
+    { key: 'gym', label: 'Gym', icon: Dumbbell },
+    { key: 'basketball', label: 'Basketball Court', icon: Trophy },
+    { key: 'football', label: 'Football Ground', icon: Activity },
     { key: 'library', label: 'Library', icon: BookOpen },
+    { key: 'labs', label: 'Labs', icon: Sparkles },
     { key: 'food', label: 'Food', icon: Utensils },
-    { key: 'sports', label: 'Sports', icon: Dumbbell },
-    { key: 'hostels', label: 'Hostels', icon: Home },
+    { key: 'academic', label: 'Academic', icon: BookOpen },
     { key: 'parking', label: 'Parking', icon: Car },
   ];
 

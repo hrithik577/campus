@@ -34,7 +34,8 @@ export const Header: React.FC = () => {
     buildings,
     currentUser,
     logout,
-    isLiveNavActive
+    isLiveNavActive,
+    setProfileModalOpen
   } = useCampusStore();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -173,8 +174,13 @@ export const Header: React.FC = () => {
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="w-10 h-10 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 rounded-xl sm:rounded-lg bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs font-bold text-slate-800 flex items-center justify-center sm:gap-2 transition-colors touch-target-48"
               >
-                <div className="w-6 h-6 sm:w-5 sm:h-5 rounded-full bg-slate-900 text-cyan-400 flex items-center justify-center text-[10px] font-extrabold">
-                  {currentUser.name.charAt(0)}
+                <div className="w-6 h-6 sm:w-5 sm:h-5 rounded-full overflow-hidden bg-slate-900 text-cyan-400 flex items-center justify-center text-[10px] font-extrabold border border-cyan-500/40">
+                  {currentUser.avatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{currentUser.name.charAt(0)}</span>
+                  )}
                 </div>
                 <span className="hidden xl:inline max-w-[100px] truncate">{currentUser.name}</span>
                 <ChevronDown className="hidden sm:inline w-3 h-3 text-slate-400" />
@@ -184,23 +190,45 @@ export const Header: React.FC = () => {
                 <>
                   <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setShowProfileMenu(false)} />
                   <div className="absolute right-0 top-12 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2.5 z-50 animate-in fade-in duration-150 text-xs">
-                  <div className="p-2 border-b border-slate-100">
-                    <div className="font-extrabold text-slate-900">{currentUser.name}</div>
-                    <div className="text-[10px] text-slate-500 truncate">{currentUser.email}</div>
-                    <div className="mt-1 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-50 text-cyan-800 uppercase">
-                      {currentUser.role}
+                  <div className="p-2 border-b border-slate-100 flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-900 text-cyan-400 flex items-center justify-center text-xs font-bold shrink-0 border border-cyan-500/30">
+                      {currentUser.avatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span>{currentUser.name.charAt(0)}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-extrabold text-slate-900 truncate">{currentUser.name}</div>
+                      <div className="text-[10px] text-slate-500 truncate">{currentUser.email}</div>
+                      <div className="mt-0.5 inline-block px-1.5 py-0.2 rounded text-[9px] font-bold bg-cyan-50 text-cyan-800 uppercase">
+                        {currentUser.role}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="pt-1.5">
+                  <div className="pt-1.5 space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileModalOpen(true);
+                        setShowProfileMenu(false);
+                      }}
+                      className="w-full text-left px-2.5 py-2 rounded-xl text-slate-800 hover:bg-cyan-50 hover:text-cyan-900 font-bold flex items-center gap-2 transition-colors"
+                    >
+                      <User className="w-4 h-4 text-cyan-600" />
+                      <span>My Profile &amp; Photo</span>
+                    </button>
+
                     {currentUser.role === 'admin' && (
                       <Link
                         href="/admin"
                         onClick={() => setShowProfileMenu(false)}
-                        className="w-full text-left px-2.5 py-2 rounded-xl text-slate-800 hover:bg-slate-100 font-bold flex items-center gap-2 transition-colors mb-1"
+                        className="w-full text-left px-2.5 py-2 rounded-xl text-slate-800 hover:bg-slate-100 font-bold flex items-center gap-2 transition-colors"
                       >
                         <ShieldCheck className="w-4 h-4 text-cyan-600" />
-                        Operations Dashboard
+                        <span>Operations Dashboard</span>
                       </Link>
                     )}
                     <button
@@ -208,7 +236,7 @@ export const Header: React.FC = () => {
                       className="w-full text-left px-2.5 py-2 rounded-xl text-rose-600 hover:bg-rose-50 font-bold flex items-center gap-2 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign Out
+                      <span>Sign Out</span>
                     </button>
                   </div>
                 </div>

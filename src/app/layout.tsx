@@ -7,6 +7,7 @@ import { CommandPalette } from '../components/common/CommandPalette';
 import { AIChatPanel } from '../components/ai/AIChatPanel';
 import { FloorPlanModal } from '../components/map/FloorPlanModal';
 import { MaintenanceWizard } from '../components/reports/MaintenanceWizard';
+import { UserProfileModal } from '../components/profile/UserProfileModal';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -49,6 +50,7 @@ export default function RootLayout({
         <AIChatPanel />
         <FloorPlanModal />
         <MaintenanceWizard />
+        <UserProfileModal />
 
         <footer className="border-t border-slate-200/80 bg-white py-6 mt-8 hidden lg:block text-center text-xs text-slate-500">
           <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -58,9 +60,6 @@ export default function RootLayout({
             </div>
             <div className="flex items-center gap-4 text-[11px] text-slate-500">
               <span>Spatial Telemetry v2.4</span>
-              <span>•</span>
-              <span>Enterprise Spatial Intelligence</span>
-              <span>•</span>
               <a href="/admin" className="hover:text-cyan-600 font-medium">Admin Operations</a>
             </div>
           </div>

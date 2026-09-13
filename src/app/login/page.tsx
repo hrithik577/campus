@@ -17,9 +17,12 @@ import {
   EyeOff,
   Activity,
   MapPin,
-  Layers
+  Layers,
+  AlertCircle
 } from 'lucide-react';
 import { useCampusStore } from '../../services/campusStore';
+import { authService } from '../../services/authService';
+import RegisterModal from '../../components/auth/RegisterModal';
 import { UserProfile } from '../../types/campus';
 
 export default function LoginPage() {
@@ -32,59 +35,29 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showRegister, setShowRegister] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    setTimeout(() => {
-      let user: UserProfile;
-
-      if (loginRole === 'admin') {
-        user = {
-          id: 'user-admin-01',
-          name: 'Campus Operations Chief',
-          email: 'ops@amity.edu',
-          role: 'admin',
-          department: 'University Infrastructure & Operations'
-        };
-      } else if (loginRole === 'faculty') {
-        user = {
-          id: 'user-fac-02',
-          name: 'Prof. V. Raman',
-          email: 'vraman@amity.edu',
-          role: 'faculty',
-          department: 'Department of Computer Science & Engineering'
-        };
-      } else {
-        const username = emailOrId.includes('@') ? emailOrId.split('@')[0] : emailOrId;
-        const formattedName = username
-          .replace(/[._-]/g, ' ')
-          .replace(/\b\w/g, c => c.toUpperCase());
-
-        user = {
-          id: 'user-std-' + Math.random().toString(36).substring(2, 7),
-          name: formattedName || 'Student Member',
-          email: emailOrId.includes('@') ? emailOrId : `${emailOrId.toLowerCase()}@amity.edu`,
-          role: 'student',
-          department: 'Computer Science & Engineering',
-          studentId: emailOrId.includes('AMITY') ? emailOrId : 'AMITY-CS-2026-042'
-        };
-      }
-
-      setCurrentUser(user);
-      setIsSubmitting(false);
-      setSuccessMessage(`Authenticated as ${user.name}`);
-
+    setErrorMessage('');
+    const result = authService.login(emailOrId.trim(), password, loginRole);
+    if (result.success && result.user) {
+      setCurrentUser(result.user);
+      setSuccessMessage(`Authenticated as ${result.user.name}`);
       setTimeout(() => {
-        if (user.role === 'admin') {
+        if (result.user?.role === 'admin') {
           router.push('/admin');
         } else {
           router.push('/explore');
         }
       }, 600);
-    }, 400);
+    } else {
+      setErrorMessage(result.error || 'Login failed');
+    }
+    setIsSubmitting(false);
   };
 
   return (
@@ -214,6 +187,23 @@ export default function LoginPage() {
               </button>
             </div>
 
+            {/* Error Message Notification */}
+            {errorMessage && (
+              <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-bold flex items-center justify-between animate-in fade-in">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setErrorMessage(''); setShowRegister(true); }}
+                  className="text-cyan-700 hover:text-cyan-900 underline font-extrabold text-[11px] whitespace-nowrap ml-2"
+                >
+                  Create Account
+                </button>
+              </div>
+            )}
+
             {/* Success Message Notification */}
             {successMessage ? (
               <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl text-center space-y-2 animate-in fade-in">
@@ -239,8 +229,10 @@ export default function LoginPage() {
                       onChange={(e) => setEmailOrId(e.target.value)}
                       placeholder={
                         loginRole === 'student' 
-                          ? 'user@amity.edu or Enrollment ID' 
-                          : 'official.identity@amity.edu'
+                          ? 'aarav.sharma@amity.edu or Enrollment ID' 
+                          : loginRole === 'faculty'
+                          ? 'vraman@amity.edu'
+                          : 'ops@amity.edu'
                       }
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-cyan-500 font-medium"
                     />
@@ -282,28 +274,51 @@ export default function LoginPage() {
                     <span>Remember this session</span>
                   </label>
 
-                  <a href="#" className="text-cyan-700 hover:text-cyan-800 font-bold">
-                    Forgot Password?
-                  </a>
+                  <button 
+                    type="button"
+                    onClick={() => setShowRegister(true)}
+                    className="text-cyan-700 hover:text-cyan-800 font-bold"
+                  >
+                    Need an account?
+                  </button>
                 </div>
 
                 {/* Submit Action Button */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-cyan-600 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 group"
+                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-cyan-600 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
                 >
                   {isSubmitting ? (
-                    <span>Authenticating...</span>
+                    <span>Authenticating Credentials...</span>
                   ) : (
                     <>
-                      <span>Sign In to Amity Campus Twin</span>
+                      <span>Sign In with Institutional ID</span>
                       <ArrowRight className="w-4 h-4 text-cyan-400 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
                 </button>
 
+                {/* Create Account Bar */}
+                <div className="pt-2 text-center border-t border-slate-100">
+                  <span className="text-xs text-slate-500">First time on Campus Twin? </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowRegister(true)}
+                    className="text-xs font-extrabold text-cyan-600 hover:text-cyan-800 hover:underline"
+                  >
+                    Create New Account
+                  </button>
+                </div>
+
               </form>
+            )}
+
+            {showRegister && (
+              <RegisterModal 
+                onClose={() => setShowRegister(false)} 
+                onSuccess={() => router.push('/explore')}
+              />
             )}
 
           </div>

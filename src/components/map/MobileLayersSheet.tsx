@@ -13,7 +13,12 @@ import {
   Accessibility,
   X,
   Check,
-  Mic
+  Dumbbell,
+  ShoppingBag,
+  HeartPulse,
+  UtensilsCrossed,
+  BookOpen,
+  Sparkles
 } from 'lucide-react';
 import { useCampusStore } from '../../services/campusStore';
 import { BuildingCategory } from '../../types/campus';
@@ -35,13 +40,19 @@ export const MobileLayersSheet: React.FC<MobileLayersSheetProps> = ({
     toggleSmartFilter
   } = useCampusStore();
 
-  const categories: { key: BuildingCategory | 'all'; label: string; icon: any }[] = [
-    { key: 'all', label: 'All Buildings', icon: BuildingIcon },
-    { key: 'auditorium', label: 'Auditoriums & Halls', icon: Mic },
-    { key: 'labs', label: 'Labs & Research', icon: Layers },
-    { key: 'food', label: 'Food & Dining', icon: Utensils },
-    { key: 'sports', label: 'Sports & Fitness', icon: Trophy },
-    { key: 'hostels', label: 'Hostels & Residences', icon: Home },
+  const categories: { key: BuildingCategory | 'all'; label: string; icon: React.ElementType }[] = [
+    { key: 'all', label: 'All Buildings', icon: Layers },
+    { key: 'hostels', label: 'Hostel', icon: Home },
+    { key: 'mess', label: 'Mess & Dining', icon: UtensilsCrossed },
+    { key: 'mart', label: 'Student Mart', icon: ShoppingBag },
+    { key: 'mrc', label: 'College MRC', icon: HeartPulse },
+    { key: 'gym', label: 'Gym & Fitness', icon: Dumbbell },
+    { key: 'basketball', label: 'Basketball Court', icon: Trophy },
+    { key: 'football', label: 'Football Ground', icon: Activity },
+    { key: 'library', label: 'Library', icon: BookOpen },
+    { key: 'labs', label: 'Labs & Research', icon: Sparkles },
+    { key: 'food', label: 'Food & Cafes', icon: Utensils },
+    { key: 'academic', label: 'Academic Blocks', icon: BuildingIcon },
     { key: 'parking', label: 'Parking & EV', icon: Car },
   ];
 
@@ -77,7 +88,7 @@ export const MobileLayersSheet: React.FC<MobileLayersSheetProps> = ({
         {/* Building Category Selectors */}
         <div className="space-y-2">
           <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Category Filters</div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
             {categories.map((cat) => {
               const Icon = cat.icon;
               const isActive = activeCategoryFilter === cat.key;
@@ -85,14 +96,17 @@ export const MobileLayersSheet: React.FC<MobileLayersSheetProps> = ({
                 <button
                   key={cat.key}
                   type="button"
-                  onClick={() => setActiveCategoryFilter(cat.key)}
-                  className={`p-3.5 rounded-2xl border flex items-center gap-2.5 text-xs font-bold transition-all min-h-[48px] touch-target-48 active:scale-95 ${
+                  onClick={() => {
+                    setActiveCategoryFilter(cat.key);
+                    onClose();
+                  }}
+                  className={`p-3 rounded-2xl border flex items-center gap-2.5 text-xs font-bold transition-all min-h-[48px] touch-target-48 active:scale-95 ${
                     isActive
                       ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
                       : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-cyan-400' : 'text-slate-500'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-cyan-400' : 'text-slate-500'}`} />
                   <span className="truncate">{cat.label}</span>
                 </button>
               );

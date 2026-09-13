@@ -8,13 +8,14 @@ import {
   Bot, 
   User, 
   Navigation, 
-  MapPin,
-  Layers, 
-  Wrench, 
+  MapPin, 
   X,
   Mic,
   MicOff,
-  AlertCircle
+  AlertCircle,
+  Volume2,
+  VolumeX,
+  Radio
 } from 'lucide-react';
 import { useCampusStore } from '../../services/campusStore';
 import { processAIQuery } from '../../services/aiAssistantService';
@@ -32,16 +33,24 @@ export const AIChatPanel: React.FC = () => {
     setSelectedRoom,
     setActiveRoute,
     buildings,
-    voiceEnabled
+    voiceEnabled,
+    setVoiceEnabled
   } = useCampusStore();
 
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
+  const [currentlySpeakingIdx, setCurrentlySpeakingIdx] = useState<number | null>(null);
+  const [voiceInfo, setVoiceInfo] = useState<{ name: string; isFemale: boolean; displayName: string }>({
+    name: 'Aria',
+    isFemale: true,
+    displayName: 'Aria (Executive Female Voice)'
+  });
+
   const [messages, setMessages] = useState<{ sender: 'user' | 'ai'; content: string; responseObj?: AIResponse }[]>([
     {
       sender: 'ai',
-      content: 'Hello! I am your AI Campus Assistant. Ask me anything about your campus spaces, nearest computer labs, cafeteria crowd levels, or walking directions.'
+      content: 'Greetings. I am **Aria**, your executive campus digital twin AI specialist. You may ask me about hostel residences, mess dining schedules, student mart stationery & printing, College MRC medical clinic, gym facilities, basketball and football grounds, or real-time navigation.'
     }
   ]);
 
@@ -51,7 +60,30 @@ export const AIChatPanel: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const info = voiceNavService.getVoiceInfo();
+      setVoiceInfo(info);
+    }
+  }, [isAiAssistantOpen]);
+
   if (!isAiAssistantOpen) return null;
+
+  const speakMessage = (text: string, msgIdx?: number) => {
+    if (!voiceNavService.isSupported()) {
+      setVoiceNotice("Speech synthesis is unavailable in this browser.");
+      setTimeout(() => setVoiceNotice(null), 3000);
+      return;
+    }
+    const cleanText = text.replace(/[*#]/g, '').substring(0, 260);
+    if (msgIdx !== undefined) {
+      setCurrentlySpeakingIdx(msgIdx);
+    }
+    voiceNavService.speak(cleanText, true);
+    setTimeout(() => {
+      setCurrentlySpeakingIdx(null);
+    }, 4500);
+  };
 
   const handleSend = (textToSend?: string) => {
     const q = textToSend || input;
@@ -64,6 +96,7 @@ export const AIChatPanel: React.FC = () => {
 
     setTimeout(() => {
       const response = processAIQuery(q);
+      const newIdx = messages.length + 1;
       setMessages(prev => [
         ...prev, 
         { sender: 'ai', content: response.text, responseObj: response }
@@ -73,13 +106,11 @@ export const AIChatPanel: React.FC = () => {
         setSelectedBuildingId(response.highlightBuildingId);
       }
 
-      // Read aloud if voice is enabled
+      // Automatically speak with female voice if audio is enabled
       if (voiceEnabled) {
-        // Strip markdown asterisks for cleaner speech
-        const plainText = response.text.replace(/[*#]/g, '').substring(0, 160);
-        voiceNavService.speak(plainText);
+        speakMessage(response.text, newIdx);
       }
-    }, 250);
+    }, 200);
   };
 
   const toggleMic = () => {
@@ -90,13 +121,13 @@ export const AIChatPanel: React.FC = () => {
     }
 
     if (!speechRecognitionService.isSupported()) {
-      setVoiceNotice("Voice guidance / speech recognition isn't supported in this browser.");
+      setVoiceNotice("Voice speech recognition is not supported in this browser.");
       setTimeout(() => setVoiceNotice(null), 4000);
       return;
     }
 
     setIsListening(true);
-    setVoiceNotice('Listening... Speak your campus question.');
+    setVoiceNotice('Listening with executive speech recognition...');
 
     speechRecognitionService.startListening(
       (transcript, isFinal) => {
@@ -128,7 +159,7 @@ export const AIChatPanel: React.FC = () => {
     router.push('/explore');
   };
 
-  const handleNavigateToTarget = (targetId: string, label?: string) => {
+  const handleNavigateToTarget = (targetId: string) => {
     const route = calculateCampusRoute('node-north-gate', targetId, 'fastest');
     if (route) {
       setActiveRoute(route);
@@ -138,39 +169,75 @@ export const AIChatPanel: React.FC = () => {
   };
 
   const presetPrompts = [
+    'Where is the hostel and mess?',
+    'What are Student Mart timings?',
+    'Where is College MRC & doctor clinic?',
+    'Is the Gym available now?',
+    'Basketball court & floodlights',
+    'Football ground & running track',
     'Nearest computer lab',
-    'Which cafeteria is least crowded?',
-    'Is Lab 204 available?',
-    'Where can I park?',
-    'Grand Auditorium',
-    'Central Library hours'
+    'Central Library study hours'
   ];
 
   return (
-    <div className="fixed inset-0 lg:inset-auto lg:bottom-4 lg:right-4 z-50 w-full max-w-full lg:max-w-md bg-white flex flex-col h-[100dvh] lg:h-[600px] lg:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in duration-150 pt-[env(safe-area-inset-top,0px)]">
+    <div className="fixed inset-0 lg:inset-auto lg:bottom-4 lg:right-4 z-50 w-full max-w-full lg:max-w-md bg-white flex flex-col h-[100dvh] lg:h-[620px] lg:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in duration-150 pt-[env(safe-area-inset-top,0px)]">
       
       {/* Header */}
-      <div className="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+      <div className="p-3.5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 animate-pulse" />
+          <div className="w-9 h-9 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-400/30 flex items-center justify-center">
+            <Sparkles className="w-4.5 h-4.5 animate-pulse" />
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-white">CAMPUS AI ASSISTANT</h3>
-            <span className="text-[10px] text-cyan-400 font-mono">Spatial Intelligence & Navigation</span>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-black text-white tracking-wide">ARIA • CAMPUS AI</h3>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-cyan-400/20 text-cyan-300 border border-cyan-400/30">
+                FEMALE VOICE
+              </span>
+            </div>
+            <span className="text-[10px] text-slate-300 flex items-center gap-1 font-medium">
+              <Radio className="w-2.5 h-2.5 text-emerald-400 animate-pulse" />
+              <span>Spatial Intelligence Specialist</span>
+            </span>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            if (isListening) speechRecognitionService.stopListening();
-            setAiAssistantOpen(false);
-          }}
-          className="w-10 h-10 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors touch-target-48 flex items-center justify-center"
-          title="Close AI"
-        >
-          <X className="w-5 h-5" />
-        </button>
+
+        <div className="flex items-center gap-1">
+          {/* Audio Voice Read-Aloud Toggle Button */}
+          <button
+            type="button"
+            onClick={() => {
+              const nextState = !voiceEnabled;
+              setVoiceEnabled(nextState);
+              if (nextState) {
+                speakMessage("Audio guidance enabled. Aria female voice ready.");
+              } else {
+                voiceNavService.cancel();
+              }
+            }}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+              voiceEnabled 
+                ? 'bg-cyan-600/30 text-cyan-300 border border-cyan-400/40' 
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+            title={voiceEnabled ? 'Voice enabled (Click to mute)' : 'Voice muted (Click to enable)'}
+          >
+            {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (isListening) speechRecognitionService.stopListening();
+              voiceNavService.cancel();
+              setAiAssistantOpen(false);
+            }}
+            className="w-9 h-9 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors flex items-center justify-center"
+            title="Close AI Assistant"
+          >
+            <X className="w-4.5 h-4.5" />
+          </button>
+        </div>
       </div>
 
       {/* Voice Status Alert Banner */}
@@ -181,14 +248,14 @@ export const AIChatPanel: React.FC = () => {
         </div>
       )}
 
-      {/* Quick Suggestions Chip Bar */}
-      <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2 overflow-x-auto scrollbar-none px-4 shrink-0">
+      {/* Preset Quick Chips Bar */}
+      <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2 overflow-x-auto scrollbar-none px-3.5 shrink-0">
         {presetPrompts.map((prompt, i) => (
           <button
             key={i}
             type="button"
             onClick={() => handleSend(prompt)}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-cyan-50 hover:text-cyan-800 border border-slate-200 text-slate-700 whitespace-nowrap transition-colors shadow-2xs active:scale-95 shrink-0 min-h-[40px] touch-target-48"
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-cyan-50 hover:text-cyan-800 border border-slate-200 text-slate-700 whitespace-nowrap transition-colors shadow-2xs active:scale-95 shrink-0 min-h-[34px]"
           >
             {prompt}
           </button>
@@ -214,6 +281,22 @@ export const AIChatPanel: React.FC = () => {
                 : 'bg-white border border-slate-200 text-slate-900 shadow-2xs rounded-tl-none'
             }`}>
               <div className="whitespace-pre-line leading-relaxed">{msg.content}</div>
+
+              {/* Speak Audio Button for AI Messages */}
+              {msg.sender === 'ai' && (
+                <div className="pt-1 flex items-center justify-between border-t border-slate-100">
+                  <span className="text-[10px] text-slate-400 font-mono">Amity Spatial Concierge</span>
+                  <button
+                    type="button"
+                    onClick={() => speakMessage(msg.content, idx)}
+                    className="flex items-center gap-1 text-[11px] font-bold text-cyan-700 hover:text-cyan-900 px-2 py-1 rounded-lg hover:bg-cyan-50 transition-colors"
+                    title="Listen with Aria's female voice"
+                  >
+                    <Volume2 className={`w-3.5 h-3.5 text-cyan-600 ${currentlySpeakingIdx === idx ? 'animate-bounce' : ''}`} />
+                    <span>{currentlySpeakingIdx === idx ? 'Speaking...' : 'Listen'}</span>
+                  </button>
+                </div>
+              )}
 
               {/* Actionable Destination Card */}
               {msg.responseObj && (() => {
@@ -259,7 +342,7 @@ export const AIChatPanel: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Bar Stickied at Bottom */}
+      {/* Input Bar */}
       <form 
         onSubmit={(e) => { e.preventDefault(); handleSend(); }}
         className="p-3 bg-white border-t border-slate-200 flex items-center gap-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] shrink-0"
@@ -272,7 +355,7 @@ export const AIChatPanel: React.FC = () => {
               ? 'bg-rose-600 text-white ring-4 ring-rose-200 animate-pulse'
               : 'text-slate-500 hover:text-cyan-600 hover:bg-slate-100'
           }`}
-          title={isListening ? 'Stop listening' : 'Speak to AI'}
+          title={isListening ? 'Stop listening' : 'Speak to Aria AI'}
         >
           {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5 text-cyan-600" />}
         </button>
@@ -282,7 +365,7 @@ export const AIChatPanel: React.FC = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onFocus={() => setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 200)}
-          placeholder={isListening ? 'Listening to voice...' : 'Ask Campus AI...'}
+          placeholder={isListening ? 'Listening to voice...' : 'Ask Aria about hostel, mess, mart, MRC, gym...'}
           className="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-3 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-cyan-500 font-semibold"
         />
 

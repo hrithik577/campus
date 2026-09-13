@@ -15,8 +15,8 @@ export type VoiceNavigationEvent =
 
 class VoiceNavigationService {
   private isEnabled: boolean = true;
-  private speechRate: number = 1.0;
-  private speechPitch: number = 1.0;
+  private speechRate: number = 0.98;
+  private speechPitch: number = 1.05; // Slightly higher pitch for articulate, natural female timbre
   private voice: SpeechSynthesisVoice | null = null;
   private lastSpokenText: string = '';
   private lastSpokenTime: number = 0;
@@ -46,46 +46,45 @@ class VoiceNavigationService {
     if (!voices || voices.length === 0) return null;
 
     try {
-      // 1. Prefer female English India voice (en-IN)
-      const femaleIndianVoice = voices.find(v => {
-        const lang = v.lang.toLowerCase().replace('_', '-');
-        const name = v.name.toLowerCase();
-        const isIndianEnglish = lang.includes('en-in') || lang.includes('en_in');
-        const isFemale = name.includes('female') || name.includes('veena') || name.includes('heera') || 
-                         name.includes('priya') || name.includes('neerja') || name.includes('aditi');
-        return isIndianEnglish && isFemale;
-      }) || voices.find(v => {
-        const lang = v.lang.toLowerCase().replace('_', '-');
-        return lang.includes('en-in');
-      });
-
-      if (femaleIndianVoice) return femaleIndianVoice;
-
-      // 2. Prefer known natural female English voices
+      // 1. High priority: Known Natural English Female Voices
       const femaleEnglishVoice = voices.find(v => {
         const lang = v.lang.toLowerCase();
         const name = v.name.toLowerCase();
         const isEnglish = lang.startsWith('en');
-        const isFemale = name.includes('female') || name.includes('samantha') || name.includes('karen') || 
-                         name.includes('victoria') || name.includes('zira') || name.includes('jenny') || 
-                         name.includes('ava') || name.includes('moira') || name.includes('tessa') || 
-                         name.includes('fiona') || name.includes('serena') || name.includes('stephanie') ||
-                         name.includes('siri') || (name.includes('natural') && !name.includes('male'));
-        return isEnglish && isFemale;
+        const isFemaleName = name.includes('female') || name.includes('zira') || name.includes('jenny') || 
+                             name.includes('samantha') || name.includes('karen') || name.includes('victoria') || 
+                             name.includes('ava') || name.includes('moira') || name.includes('tessa') || 
+                             name.includes('fiona') || name.includes('serena') || name.includes('stephanie') ||
+                             name.includes('siri') || name.includes('veena') || name.includes('heera') || 
+                             name.includes('priya') || name.includes('neerja') || name.includes('aditi');
+        return isEnglish && isFemaleName;
       });
 
       if (femaleEnglishVoice) return femaleEnglishVoice;
 
-      // 3. Prefer any high quality English voice
-      const anyEnglishVoice = voices.find(v => {
-        const lang = v.lang.toLowerCase();
+      // 2. Google US English (Default Chrome Female Voice)
+      const googleUSEnglish = voices.find(v => {
         const name = v.name.toLowerCase();
-        return lang.startsWith('en') && (name.includes('google') || name.includes('natural') || lang.includes('en-us') || lang.includes('en-gb'));
-      }) || voices.find(v => v.lang.toLowerCase().startsWith('en'));
+        return name.includes('google us english') || (name.includes('google') && v.lang.toLowerCase().includes('en-us'));
+      });
 
-      if (anyEnglishVoice) return anyEnglishVoice;
+      if (googleUSEnglish) return googleUSEnglish;
 
-      // 4. Fall back gracefully to the browser's default voice
+      // 3. Indian English voices
+      const indianVoice = voices.find(v => v.lang.toLowerCase().includes('en-in'));
+      if (indianVoice) return indianVoice;
+
+      // 4. Any English voice that does not explicitly mention "male" or "guy" or "david"
+      const anyNaturalEnglish = voices.find(v => {
+        const name = v.name.toLowerCase();
+        const isEnglish = v.lang.toLowerCase().startsWith('en');
+        const isNotMale = !name.includes('male') && !name.includes('david') && !name.includes('guy') && !name.includes('george') && !name.includes('mark');
+        return isEnglish && isNotMale;
+      });
+
+      if (anyNaturalEnglish) return anyNaturalEnglish;
+
+      // 5. Browser default fallback
       return voices.find(v => v.default) || voices[0] || null;
     } catch {
       return voices[0] || null;
@@ -102,6 +101,19 @@ class VoiceNavigationService {
     } catch (e) {
       console.warn('Could not load speech voices:', e);
     }
+  }
+
+  public getVoiceInfo(): { name: string; isFemale: boolean; displayName: string } {
+    if (!this.voice) {
+      return { name: 'Aria AI', isFemale: true, displayName: 'Aria • Executive Female Voice' };
+    }
+    const rawName = this.voice.name;
+    const cleanName = rawName.replace(/Microsoft |Google | Apple| Desktop/g, '').trim();
+    return {
+      name: rawName,
+      isFemale: true,
+      displayName: `Aria (${cleanName || 'Female Voice'})`
+    };
   }
 
   public isSupported(): boolean {

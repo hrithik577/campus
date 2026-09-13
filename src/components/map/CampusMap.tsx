@@ -531,8 +531,20 @@ function getCategoryColors(category: BuildingCategory, isSelected: boolean, isHo
       return { bg: '#ffffff', innerBg: '#f8fafc', stroke: '#cbd5e1' };
     case 'food':
       return { bg: '#fffbeb', innerBg: '#fef3c7', stroke: '#fde68a' };
+    case 'mess':
+      return { bg: '#fff7ed', innerBg: '#ffedd5', stroke: '#fb923c' };
+    case 'mart':
+      return { bg: '#fdf4ff', innerBg: '#fae8ff', stroke: '#e879f9' };
+    case 'mrc':
+    case 'medical':
+      return { bg: '#fef2f2', innerBg: '#fee2e2', stroke: '#f87171' };
+    case 'gym':
+      return { bg: '#f0fdfa', innerBg: '#ccfbf1', stroke: '#2dd4bf' };
+    case 'basketball':
+      return { bg: '#fff1f2', innerBg: '#ffe4e6', stroke: '#fb7185' };
+    case 'football':
     case 'sports':
-      return { bg: '#f0fdf4', innerBg: '#dcfce7', stroke: '#bbf7d0' };
+      return { bg: '#f0fdf4', innerBg: '#dcfce7', stroke: '#86efac' };
     case 'hostels':
       return { bg: '#faf5ff', innerBg: '#f3e8ff', stroke: '#e9d5ff' };
     case 'library':

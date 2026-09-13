@@ -9,7 +9,13 @@ export type BuildingCategory =
   | 'medical'
   | 'admin'
   | 'innovation'
-  | 'auditorium';
+  | 'auditorium'
+  | 'mess'
+  | 'mart'
+  | 'mrc'
+  | 'gym'
+  | 'basketball'
+  | 'football';
 
 export type OperationalStatus = 'operational' | 'available' | 'crowded' | 'maintenance' | 'closed';
 
@@ -185,5 +191,10 @@ export interface UserProfile {
   role: 'student' | 'faculty' | 'admin' | 'guest';
   department?: string;
   studentId?: string;
+  phone?: string;
+  avatar?: string;
+  joinedDate?: string;
+  hostelRoom?: string;
+  emergencyContact?: string;
 }
 

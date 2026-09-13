@@ -20,6 +20,7 @@ import {
 } from '../data/mockCampusData';
 import { voiceNavService } from './voiceNavigationService';
 import { calculateCampusRoute } from './navigationService';
+import { authService } from './authService';
 
 class CampusStore {
   private buildings: Building[] = [...INITIAL_BUILDINGS];
@@ -48,14 +49,19 @@ class CampusStore {
   private isPathIssueModalOpen: boolean = false;
 
   private currentUser: UserProfile | null = {
-    id: 'user-101',
+    id: 'user-std-101',
     name: 'Aarav Sharma',
     email: 'aarav.sharma@amity.edu',
     role: 'student',
     department: 'Computer Science & Engineering',
-    studentId: 'AMITY-CS-2026-042'
+    studentId: 'AMITY-CS-2026-042',
+    phone: '+91 98765 43210',
+    joinedDate: 'August 2024',
+    hostelRoom: 'Hostel H-1 (Ramanujan), Room 304',
+    emergencyContact: 'Mr. R. Sharma (+91 98765 43211)'
   };
 
+  private isProfileModalOpen: boolean = false;
   private isAiAssistantOpen: boolean = false;
   private isCommandPaletteOpen: boolean = false;
   private isFloorPlanOpen: boolean = false;
@@ -88,7 +94,7 @@ class CampusStore {
         }
 
         this.voiceEnabled = voiceNavService.getIsEnabled();
-      } catch (e) {
+      } catch {
         // silent fail on restricted environments
       }
     }
@@ -110,7 +116,7 @@ class CampusStore {
         } else {
           localStorage.removeItem('campustwin_user');
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     }
@@ -134,6 +140,7 @@ class CampusStore {
   public getIsRouteOverviewOpen() { return this.isRouteOverviewOpen; }
   public getIsPathIssueModalOpen() { return this.isPathIssueModalOpen; }
   public getCurrentUser() { return this.currentUser; }
+  public getIsProfileModalOpen() { return this.isProfileModalOpen; }
   public getIsAiAssistantOpen() { return this.isAiAssistantOpen; }
   public getIsCommandPaletteOpen() { return this.isCommandPaletteOpen; }
   public getIsFloorPlanOpen() { return this.isFloorPlanOpen; }
@@ -148,6 +155,23 @@ class CampusStore {
   // Actions
   public setCurrentUser(user: UserProfile | null) {
     this.currentUser = user;
+    this.notify();
+  }
+
+  public updateUserProfile(updates: Partial<UserProfile>) {
+    if (!this.currentUser) return;
+    this.currentUser = {
+      ...this.currentUser,
+      ...updates
+    };
+    if (this.currentUser.id) {
+      authService.updateProfile(this.currentUser.id, updates);
+    }
+    this.notify();
+  }
+
+  public setProfileModalOpen(open: boolean) {
+    this.isProfileModalOpen = open;
     this.notify();
   }
 
@@ -383,13 +407,11 @@ class CampusStore {
 
     this.reports.unshift(report);
 
-    // Increment maintenance count on target building
     const bldg = this.buildings.find(b => b.id === newReport.buildingId);
     if (bldg) {
       bldg.maintenanceAlertsCount += 1;
     }
 
-    // Add notification
     this.notifications.unshift({
       id: `notif-${Date.now()}`,
       title: `Issue ${reportId} Submitted`,
@@ -487,6 +509,7 @@ export function useCampusStore() {
     isRouteOverviewOpen: campusStore.getIsRouteOverviewOpen(),
     isPathIssueModalOpen: campusStore.getIsPathIssueModalOpen(),
     currentUser: campusStore.getCurrentUser(),
+    isProfileModalOpen: campusStore.getIsProfileModalOpen(),
     isAiAssistantOpen: campusStore.getIsAiAssistantOpen(),
     isCommandPaletteOpen: campusStore.getIsCommandPaletteOpen(),
     isFloorPlanOpen: campusStore.getIsFloorPlanOpen(),
@@ -500,6 +523,8 @@ export function useCampusStore() {
 
     // Dispatchers
     setCurrentUser: (user: UserProfile | null) => campusStore.setCurrentUser(user),
+    updateUserProfile: (updates: Partial<UserProfile>) => campusStore.updateUserProfile(updates),
+    setProfileModalOpen: (open: boolean) => campusStore.setProfileModalOpen(open),
     logout: () => campusStore.logout(),
     setSelectedBuildingId: (id: string | null) => campusStore.setSelectedBuildingId(id),
     setSelectedRoom: (room: Room | null) => campusStore.setSelectedRoom(room),
