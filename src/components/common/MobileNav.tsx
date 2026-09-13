@@ -17,15 +17,11 @@ export const MobileNav: React.FC = () => {
   const pathname = usePathname();
   const { 
     isAiAssistantOpen, 
-    setAiAssistantOpen 
+    setAiAssistantOpen,
+    isLiveNavActive
   } = useCampusStore();
 
-  const navItems = [
-    { href: '/explore', label: 'Explore', icon: MapPin },
-    { href: '/navigate', label: 'Navigate', icon: NavIcon },
-    { href: '/reports', label: 'Reports', icon: FileText },
-    { href: '/events', label: 'Events', icon: Calendar },
-  ];
+  if (isLiveNavActive) return null;
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-2xl px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-between select-none pointer-events-auto">

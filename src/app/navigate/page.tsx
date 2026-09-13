@@ -1,12 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationPanel } from '../../components/navigation/NavigationPanel';
+import { MobileNavOverlay } from '../../components/navigation/MobileNavOverlay';
 import { CampusMap } from '../../components/map/CampusMap';
 import { useCampusStore } from '../../services/campusStore';
+import { calculateCampusRoute } from '../../services/navigationService';
 import { Navigation } from 'lucide-react';
 
 export default function NavigatePage() {
+  const { activeRoute, setActiveRoute, selectedBuildingId } = useCampusStore();
+
+  useEffect(() => {
+    if (!activeRoute) {
+      const targetId = selectedBuildingId || 'cs-block';
+      const route = calculateCampusRoute('node-north-gate', targetId, false);
+      if (route) setActiveRoute(route);
+    }
+  }, [activeRoute, selectedBuildingId, setActiveRoute]);
+
   return (
     <div className="h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] lg:h-[calc(100vh-6.5rem)] w-full flex flex-col relative overflow-hidden">
       {/* DESKTOP HEADER (Hidden on mobile) */}
@@ -33,10 +45,8 @@ export default function NavigatePage() {
           <CampusMap />
         </div>
 
-        {/* MOBILE FLOATING NAVIGATION OVERLAY (< lg) */}
-        <div className="lg:hidden fixed bottom-18 left-3 right-3 z-30 max-h-[60vh] overflow-y-auto">
-          <NavigationPanel />
-        </div>
+      {/* MOBILE FLOATING GOOGLE MAPS STYLE NAVIGATION OVERLAY (< lg) */}
+      <MobileNavOverlay />
       </div>
     </div>
   );

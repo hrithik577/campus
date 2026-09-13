@@ -53,6 +53,9 @@ class CampusStore {
   private isNavPanelOpen: boolean = false;
   private isLayersOpen: boolean = false;
   private isCrowdOpen: boolean = false;
+  private isLiveNavActive: boolean = false;
+  private currentNavStepIndex: number = 0;
+  private isArrivalModalOpen: boolean = false;
 
   private listeners: Set<() => void> = new Set();
 
@@ -189,6 +192,29 @@ class CampusStore {
     this.notify();
   }
 
+  public getIsLiveNavActive() { return this.isLiveNavActive; }
+  public getCurrentNavStepIndex() { return this.currentNavStepIndex; }
+  public getIsArrivalModalOpen() { return this.isArrivalModalOpen; }
+
+  public setLiveNavActive(active: boolean) {
+    this.isLiveNavActive = active;
+    if (active) {
+      this.currentNavStepIndex = 0;
+      this.isArrivalModalOpen = false;
+    }
+    this.notify();
+  }
+
+  public setCurrentNavStepIndex(idx: number) {
+    this.currentNavStepIndex = idx;
+    this.notify();
+  }
+
+  public setArrivalModalOpen(open: boolean) {
+    this.isArrivalModalOpen = open;
+    this.notify();
+  }
+
   // Admin and Student Mutation Actions
   public addReport(newReport: Omit<MaintenanceReport, 'id' | 'createdAt' | 'updatedAt' | 'status'>): MaintenanceReport {
     const reportId = `CT-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -309,6 +335,9 @@ export function useCampusStore() {
     isNavPanelOpen: campusStore.getIsNavPanelOpen(),
     isLayersOpen: campusStore.getIsLayersOpen(),
     isCrowdOpen: campusStore.getIsCrowdOpen(),
+    isLiveNavActive: campusStore.getIsLiveNavActive(),
+    currentNavStepIndex: campusStore.getCurrentNavStepIndex(),
+    isArrivalModalOpen: campusStore.getIsArrivalModalOpen(),
 
     // Dispatchers
     setCurrentUser: (user: UserProfile | null) => campusStore.setCurrentUser(user),
@@ -325,6 +354,9 @@ export function useCampusStore() {
     setNavPanelOpen: (open: boolean) => campusStore.setNavPanelOpen(open),
     setLayersOpen: (open: boolean) => campusStore.setLayersOpen(open),
     setCrowdOpen: (open: boolean) => campusStore.setCrowdOpen(open),
+    setLiveNavActive: (active: boolean) => campusStore.setLiveNavActive(active),
+    setCurrentNavStepIndex: (idx: number) => campusStore.setCurrentNavStepIndex(idx),
+    setArrivalModalOpen: (open: boolean) => campusStore.setArrivalModalOpen(open),
     addReport: (rep: Omit<MaintenanceReport, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => campusStore.addReport(rep),
     updateReportStatus: (id: string, st: MaintenanceReport['status'], tech?: string) => campusStore.updateReportStatus(id, st, tech),
     updateBuildingStatus: (id: string, st: Building['status'], occ?: number, crd?: Building['crowdLevel']) => campusStore.updateBuildingStatus(id, st, occ, crd),

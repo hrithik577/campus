@@ -10,6 +10,7 @@ import { MobileBuildingSheet } from '../../components/explorer/MobileBuildingShe
 import { MobileRoomSheet } from '../../components/explorer/MobileRoomSheet';
 import { MobileCrowdSheet } from '../../components/crowd/MobileCrowdSheet';
 import { MobileLayersSheet } from '../../components/map/MobileLayersSheet';
+import { MobileNavOverlay } from '../../components/navigation/MobileNavOverlay';
 import { useCampusStore } from '../../services/campusStore';
 import { Search, MapPin, Layers, Activity, Compass } from 'lucide-react';
 
@@ -98,12 +99,8 @@ export default function ExplorePage() {
       </div>
 
       {/* MOBILE SHEETS (< lg) */}
-      {/* 1. Navigation Panel Mobile Overlay */}
-      {(activeRoute || isNavPanelOpen) && (
-        <div className="lg:hidden fixed bottom-18 left-3 right-3 z-30 max-h-[60vh] overflow-y-auto">
-          <NavigationPanel />
-        </div>
-      )}
+      {/* 1. Google Maps Style Mobile Navigation Overlay */}
+      <MobileNavOverlay />
 
       {/* 2. Building Sheet */}
       <MobileBuildingSheet

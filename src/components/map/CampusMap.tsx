@@ -241,39 +241,39 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             <polyline
               points={activeRoute.pathPoints.map(p => `${p.x},${p.y}`).join(' ')}
               fill="none"
-              stroke="#0284c7"
-              strokeWidth="7"
+              stroke="#0891b2"
+              strokeWidth="9"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="drop-shadow-md"
+              className="drop-shadow-lg opacity-90"
             />
             <polyline
               points={activeRoute.pathPoints.map(p => `${p.x},${p.y}`).join(' ')}
               fill="none"
-              stroke="#38bdf8"
-              strokeWidth="3.5"
-              strokeDasharray="10 10"
+              stroke="#22d3ee"
+              strokeWidth="4"
+              strokeDasharray="12 12"
               strokeLinecap="round"
-              className="animate-[dash_2s_linear_infinite]"
+              className="animate-[dash_1.5s_linear_infinite]"
             />
-            {/* Start & End Waypoint Markers */}
-            <circle 
-              cx={activeRoute.pathPoints[0].x} 
-              cy={activeRoute.pathPoints[0].y} 
-              r="8" 
-              fill="#0ea5e9" 
-              stroke="#ffffff" 
-              strokeWidth="3" 
-            />
-            <circle 
-              cx={activeRoute.pathPoints[activeRoute.pathPoints.length - 1].x} 
-              cy={activeRoute.pathPoints[activeRoute.pathPoints.length - 1].y} 
-              r="10" 
-              fill="#ef4444" 
-              stroke="#ffffff" 
-              strokeWidth="3" 
-              className="animate-bounce"
-            />
+
+            {/* START LOCATION MARKER (◎ YOU) */}
+            <g transform={`translate(${activeRoute.pathPoints[0].x}, ${activeRoute.pathPoints[0].y})`}>
+              <circle r="16" fill="#0ea5e9" opacity="0.3" className="animate-ping" />
+              <circle r="8" fill="#0284c7" stroke="#ffffff" strokeWidth="3" />
+              <rect x="-16" y="-28" width="32" height="16" rx="4" fill="#0f172a" />
+              <text x="0" y="-17" textAnchor="middle" fontSize="9" fontWeight="900" fill="#22d3ee">YOU</text>
+            </g>
+
+            {/* DESTINATION MARKER (📍 DESTINATION) */}
+            <g transform={`translate(${activeRoute.pathPoints[activeRoute.pathPoints.length - 1].x}, ${activeRoute.pathPoints[activeRoute.pathPoints.length - 1].y})`}>
+              <circle r="12" fill="#ef4444" opacity="0.3" className="animate-pulse" />
+              <circle r="9" fill="#ef4444" stroke="#ffffff" strokeWidth="3" />
+              <rect x="-40" y="-32" width="80" height="18" rx="5" fill="#0f172a" stroke="#ef4444" strokeWidth="1" />
+              <text x="0" y="-20" textAnchor="middle" fontSize="9" fontWeight="900" fill="#ffffff">
+                {activeRoute.toLocation.length > 12 ? activeRoute.toLocation.substring(0, 10) + '...' : activeRoute.toLocation}
+              </text>
+            </g>
           </g>
         )}
 
