@@ -189,12 +189,7 @@ class CampusStore {
 
   public setSelectedBuildingId(id: string | null) {
     this.selectedBuildingId = id;
-    if (id) {
-      const b = this.buildings.find(item => item.id === id);
-      if (b && b.popularRooms.length > 0) {
-        this.selectedRoom = b.popularRooms[0];
-      }
-    }
+    // Do NOT auto-select a room — let the user choose from the Place Card
     this.notify();
   }
 

@@ -106,24 +106,23 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
   }, [buildings, q]);
 
   const handleSelectBuilding = (buildingId: string) => {
-    const route = calculateCampusRoute('node-north-gate', buildingId, 'fastest');
-    if (route) setActiveRoute(route);
+    setSelectedBuildingId(buildingId);
+    setSelectedRoom(null);
     setIsFocused(false);
     setQuery('');
-    router.push('/navigate');
+    // Stay on /explore — building sheet will open (Place Card step)
   };
 
   const handleSelectRoom = (buildingId: string, room: any) => {
-    const route = calculateCampusRoute('node-north-gate', buildingId, 'fastest');
-    if (route) setActiveRoute(route);
     setSelectedBuildingId(buildingId);
     setSelectedRoom(room);
     setIsFocused(false);
     setQuery('');
-    router.push('/navigate');
+    // Stay on /explore — room sheet will open (Place Card step)
   };
 
   const handleQuickNavigate = (targetId: string) => {
+    // Direct navigate shortcut from the Start button in results
     const route = calculateCampusRoute('node-north-gate', targetId, 'fastest');
     if (route) setActiveRoute(route);
     setIsFocused(false);

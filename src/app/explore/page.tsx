@@ -109,13 +109,13 @@ export default function ExplorePage() {
       {/* 1. Google Maps Style Mobile Navigation Overlay */}
       <MobileNavOverlay />
 
-      {/* 2. Building Sheet */}
+      {/* 2. Building Sheet — Place Card (shows when building selected, no active route) */}
       <MobileBuildingSheet
-        isOpen={Boolean(selectedBuildingId && !selectedRoom && !activeRoute && !isLiveNavActive)}
-        onClose={() => setSelectedBuildingId(null)}
+        isOpen={Boolean(selectedBuildingId && !activeRoute && !isLiveNavActive)}
+        onClose={() => { setSelectedBuildingId(null); setSelectedRoom(null); }}
       />
 
-      {/* 3. Room Sheet */}
+      {/* 3. Room Sheet — Room Place Card (shows on top of building sheet) */}
       <MobileRoomSheet
         isOpen={Boolean(selectedRoom && !activeRoute && !isLiveNavActive)}
         onClose={() => setSelectedRoom(null)}
