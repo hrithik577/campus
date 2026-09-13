@@ -8,7 +8,8 @@ export type BuildingCategory =
   | 'parking'
   | 'medical'
   | 'admin'
-  | 'innovation';
+  | 'innovation'
+  | 'auditorium';
 
 export type OperationalStatus = 'operational' | 'available' | 'crowded' | 'maintenance' | 'closed';
 
@@ -164,3 +165,13 @@ export interface AIResponse {
   };
   relatedData?: any;
 }
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: 'student' | 'faculty' | 'admin' | 'guest';
+  department?: string;
+  studentId?: string;
+}
+
