@@ -48,6 +48,11 @@ class CampusStore {
   private isRouteOverviewOpen: boolean = false;
   private isPathIssueModalOpen: boolean = false;
 
+  // Live navigation simulation state
+  private remainingDistanceMeters: number = 0;
+  private navPhase: 'preview' | 'active' | 'indoor' | 'arrived' = 'preview';
+  private approachingTurnFired: Set<number> = new Set();
+
   private currentUser: UserProfile | null = {
     id: 'user-std-101',
     name: 'Aarav Sharma',
@@ -139,6 +144,8 @@ class CampusStore {
   public getVoiceEnabled() { return this.voiceEnabled; }
   public getIsRouteOverviewOpen() { return this.isRouteOverviewOpen; }
   public getIsPathIssueModalOpen() { return this.isPathIssueModalOpen; }
+  public getRemainingDistanceMeters() { return this.remainingDistanceMeters; }
+  public getNavPhase() { return this.navPhase; }
   public getCurrentUser() { return this.currentUser; }
   public getIsProfileModalOpen() { return this.isProfileModalOpen; }
   public getIsAiAssistantOpen() { return this.isAiAssistantOpen; }
@@ -240,12 +247,16 @@ class CampusStore {
       this.isArrivalModalOpen = false;
       this.isNavPaused = false;
       this.followMode = true;
+      this.navPhase = 'active';
+      this.approachingTurnFired = new Set();
       if (this.activeRoute) {
+        this.remainingDistanceMeters = this.activeRoute.totalDistanceMeters;
         voiceNavService.onNavigationStart(this.activeRoute.toLocation);
       }
     } else {
       voiceNavService.cancel();
       this.isNavPaused = false;
+      this.navPhase = 'preview';
     }
     this.notify();
   }
@@ -280,6 +291,15 @@ class CampusStore {
     if (this.isLiveNavActive && this.activeRoute && !this.isNavPaused) {
       const step = this.activeRoute.steps[idx];
       if (step) {
+        // Update nav phase based on step type
+        if (step.turnType === 'entrance') {
+          this.navPhase = 'indoor';
+        } else if (step.turnType === 'arrive') {
+          this.navPhase = 'arrived';
+        } else if (this.navPhase !== 'indoor') {
+          this.navPhase = 'active';
+        }
+
         if (step.turnType === 'entrance' && step.indoorTransition) {
           voiceNavService.onBuildingEntrance(step.indoorTransition.buildingName);
         } else if (step.turnType === 'elevator' && step.indoorTransition) {
@@ -292,6 +312,60 @@ class CampusStore {
       }
     }
     this.notify();
+  }
+
+  public tickSimulation() {
+    if (!this.isLiveNavActive || this.isNavPaused || !this.activeRoute) return;
+    const steps = this.activeRoute.steps;
+    const currentStep = steps[this.currentNavStepIndex];
+    if (!currentStep) return;
+
+    // Compute how many meters this step covers and decrement remaining
+    const stepDist = currentStep.distanceMeters || 60;
+    const decrement = Math.max(8, Math.round(stepDist / 12));
+    this.remainingDistanceMeters = Math.max(0, this.remainingDistanceMeters - decrement);
+
+    // Check if we should advance to next step
+    // Each step gets ~12 ticks worth of simulation
+    // We use a simple approach: track elapsed ticks per step
+    const nextIdx = this.currentNavStepIndex + 1;
+    if (nextIdx < steps.length && this.remainingDistanceMeters <= 0) {
+      // this shouldn't happen but guard it
+      this.setCurrentNavStepIndex(nextIdx);
+      return;
+    }
+
+    // Fire approaching-turn voice at 40m threshold
+    if (nextIdx < steps.length) {
+      const nextStep = steps[nextIdx];
+      if (this.remainingDistanceMeters <= 40 && !this.approachingTurnFired.has(nextIdx)) {
+        this.approachingTurnFired.add(nextIdx);
+        const dir = nextStep.turnType === 'left' ? 'turn left'
+          : nextStep.turnType === 'right' ? 'turn right'
+          : nextStep.turnType === 'entrance' ? `enter ${nextStep.indoorTransition?.buildingName || 'building'}`
+          : 'continue';
+        voiceNavService.onApproachingTurn(dir, Math.max(10, this.remainingDistanceMeters));
+      }
+    }
+
+    this.notify();
+  }
+
+  public advanceToNextStep() {
+    if (!this.activeRoute) return;
+    const steps = this.activeRoute.steps;
+    const nextIdx = this.currentNavStepIndex + 1;
+    if (nextIdx >= steps.length) {
+      this.isArrivalModalOpen = true;
+      this.navPhase = 'arrived';
+      voiceNavService.onArrival(this.activeRoute.toLocation);
+      this.notify();
+      return;
+    }
+    // Reset remaining for next step
+    const nextStep = steps[nextIdx];
+    this.remainingDistanceMeters = nextStep.distanceMeters || 60;
+    this.setCurrentNavStepIndex(nextIdx);
   }
 
   public setArrivalModalOpen(open: boolean) {
@@ -508,6 +582,8 @@ export function useCampusStore() {
     voiceEnabled: campusStore.getVoiceEnabled(),
     isRouteOverviewOpen: campusStore.getIsRouteOverviewOpen(),
     isPathIssueModalOpen: campusStore.getIsPathIssueModalOpen(),
+    remainingDistanceMeters: campusStore.getRemainingDistanceMeters(),
+    navPhase: campusStore.getNavPhase(),
     currentUser: campusStore.getCurrentUser(),
     isProfileModalOpen: campusStore.getIsProfileModalOpen(),
     isAiAssistantOpen: campusStore.getIsAiAssistantOpen(),
@@ -542,6 +618,8 @@ export function useCampusStore() {
     rerouteNavigation: () => campusStore.rerouteNavigation(),
     setCurrentNavStepIndex: (idx: number) => campusStore.setCurrentNavStepIndex(idx),
     setArrivalModalOpen: (open: boolean) => campusStore.setArrivalModalOpen(open),
+    tickSimulation: () => campusStore.tickSimulation(),
+    advanceToNextStep: () => campusStore.advanceToNextStep(),
     setAiAssistantOpen: (open: boolean) => campusStore.setAiAssistantOpen(open),
     setCommandPaletteOpen: (open: boolean) => campusStore.setCommandPaletteOpen(open),
     setFloorPlanOpen: (open: boolean) => campusStore.setFloorPlanOpen(open),

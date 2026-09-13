@@ -49,6 +49,7 @@ export const MobileBuildingSheet: React.FC<MobileBuildingSheetProps> = ({
     const route = calculateCampusRoute('node-north-gate', building.id);
     setActiveRoute(route);
     onClose();
+    router.push('/navigate');
   };
 
   const handleOpenFloorPlan = () => {

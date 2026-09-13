@@ -41,6 +41,7 @@ export const MobileRoomSheet: React.FC<MobileRoomSheetProps> = ({
     const route = calculateCampusRoute('node-north-gate', selectedRoom.buildingId);
     setActiveRoute(route);
     onClose();
+    router.push('/navigate');
   };
 
   const handleViewFloor = () => {

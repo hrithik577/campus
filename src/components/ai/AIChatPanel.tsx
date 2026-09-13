@@ -165,7 +165,7 @@ export const AIChatPanel: React.FC = () => {
       setActiveRoute(route);
     }
     setAiAssistantOpen(false);
-    router.push('/explore');
+    router.push('/navigate');
   };
 
   const presetPrompts = [

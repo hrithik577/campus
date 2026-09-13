@@ -434,15 +434,30 @@ export const CampusMap: React.FC<CampusMapProps> = ({
 
         {/* --- USER CURRENT POSITION ("YOU ARE HERE") MARKER --- */}
         <g transform={`translate(${userPos.x}, ${userPos.y})`}>
-          {/* Outer Accuracy Circle & Pulse */}
-          <circle r="22" fill="#0284c7" opacity="0.18" className="animate-ping" />
-          <circle r="14" fill="#0284c7" opacity="0.25" />
-          {/* Core Blue Dot */}
-          <circle r="7.5" fill="#0284c7" stroke="#ffffff" strokeWidth="2.5" />
-          {/* You Tag */}
-          <g transform="translate(0, -18)">
-            <rect x="-14" y="-8" width="28" height="14" rx="4" fill="#0f172a" />
-            <text x="0" y="2" textAnchor="middle" fontSize="8" fontWeight="900" fill="#38bdf8" fontFamily="sans-serif">YOU</text>
+          {/* Outer accuracy circle — always shown */}
+          <circle r="20" fill="#0284c7" opacity="0.12" />
+          {/* Animated ping ring during live nav */}
+          {isLiveNavActive && (
+            <>
+              <circle r="28" fill="#0284c7" opacity="0.08" className="animate-ping" style={{ animationDuration: '2s' }} />
+              <circle r="20" fill="#0ea5e9" opacity="0.2" />
+            </>
+          )}
+          {/* Core blue navigation dot */}
+          <circle
+            r={isLiveNavActive ? 9 : 7.5}
+            fill={isLiveNavActive ? '#0ea5e9' : '#0284c7'}
+            stroke="#ffffff"
+            strokeWidth="2.5"
+          />
+          {/* Inner white center dot */}
+          <circle r="3" fill="#ffffff" />
+          {/* YOU label */}
+          <g transform="translate(0, -22)">
+            <rect x="-16" y="-9" width="32" height="16" rx="5" fill={isLiveNavActive ? '#0ea5e9' : '#0f172a'} />
+            <text x="0" y="2" textAnchor="middle" fontSize="8" fontWeight="900" fill="#ffffff" fontFamily="sans-serif">
+              {isLiveNavActive ? '→ NAV' : 'YOU'}
+            </text>
           </g>
         </g>
       </svg>
@@ -460,7 +475,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       )}
 
       {/* --- MAP FLOATING UTILITY CONTROLS (+, −, Locate, Compass, Layers) --- */}
-      <div className="absolute top-16 right-3 flex flex-col gap-1.5 z-20 pointer-events-auto">
+      <div className={`absolute ${isLiveNavActive ? 'bottom-56 top-auto' : 'top-16'} right-3 flex flex-col gap-1.5 z-20 pointer-events-auto`}>
         <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl shadow-lg border border-slate-200/90 flex flex-col gap-1">
           <button
             onClick={handleZoomIn}
@@ -483,21 +498,23 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           >
             <Crosshair className="w-4 h-4 text-cyan-600" />
           </button>
-          <button
-            onClick={resetView}
-            className="w-10 h-10 text-slate-800 hover:text-cyan-600 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center active:scale-95 touch-target-48"
-            title="Reset Orientation"
-          >
-            <Compass className="w-4 h-4 text-slate-600" />
-          </button>
           {!isLiveNavActive && (
-            <button
-              onClick={() => setLayersOpen(!isLayersOpen)}
-              className={`w-10 h-10 ${isLayersOpen ? 'text-cyan-600 bg-cyan-50' : 'text-slate-800 hover:text-cyan-600 hover:bg-slate-100'} rounded-xl transition-colors flex items-center justify-center active:scale-95 touch-target-48`}
-              title="Toggle Map Layers"
-            >
-              <Layers className="w-4 h-4 text-cyan-600" />
-            </button>
+            <>
+              <button
+                onClick={resetView}
+                className="w-10 h-10 text-slate-800 hover:text-cyan-600 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center active:scale-95 touch-target-48"
+                title="Reset Orientation"
+              >
+                <Compass className="w-4 h-4 text-slate-600" />
+              </button>
+              <button
+                onClick={() => setLayersOpen(!isLayersOpen)}
+                className={`w-10 h-10 ${isLayersOpen ? 'text-cyan-600 bg-cyan-50' : 'text-slate-800 hover:text-cyan-600 hover:bg-slate-100'} rounded-xl transition-colors flex items-center justify-center active:scale-95 touch-target-48`}
+                title="Toggle Map Layers"
+              >
+                <Layers className="w-4 h-4 text-cyan-600" />
+              </button>
+            </>
           )}
         </div>
       </div>

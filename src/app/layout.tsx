@@ -35,7 +35,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable}`}>
-      <body className="bg-[#f8fafc] text-slate-900 font-sans antialiased min-h-screen flex flex-col pb-16 lg:pb-0 selection:bg-cyan-100 selection:text-cyan-900">
+      <body className="bg-[#f8fafc] text-slate-900 font-sans antialiased min-h-screen flex flex-col selection:bg-cyan-100 selection:text-cyan-900 pb-16 lg:pb-0">
         <Header />
         
         <main className="flex-1 w-full max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-0 sm:py-6">
