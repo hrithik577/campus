@@ -3,17 +3,17 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useCampusStore } from '../../services/campusStore';
-import { Calendar, MapPin, Users, Clock, Sparkles, Navigation } from 'lucide-react';
+import { calculateCampusRoute } from '../../services/navigationService';
+import { Calendar, MapPin, Clock, Navigation } from 'lucide-react';
 
 export default function EventsPage() {
   const router = useRouter();
-  const { events, setSelectedBuildingId, setSelectedRoom, setActiveRoute } = useCampusStore();
+  const { events, setActiveRoute } = useCampusStore();
 
-  const handleLocateEvent = (buildingId: string) => {
-    setActiveRoute(null);
-    setSelectedRoom(null);
-    setSelectedBuildingId(buildingId);
-    router.push('/explore');
+  const handleNavigateToEvent = (buildingId: string) => {
+    const route = calculateCampusRoute('node-north-gate', buildingId, 'fastest');
+    if (route) setActiveRoute(route);
+    router.push('/navigate');
   };
 
   const todayEvents = events.slice(0, 2);
@@ -31,9 +31,9 @@ export default function EventsPage() {
             </span>
             <span className="text-xs text-slate-400 font-mono">• Venue Mapping</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-white mt-1">Campus Events & Keynotes</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-white mt-1">Campus Events &amp; Keynotes</h1>
           <p className="text-xs text-slate-300 mt-1">
-            Discover hackathons, academic keynotes, & sports tournaments mapped to campus venues.
+            Discover hackathons, academic keynotes, &amp; sports tournaments mapped to campus venues.
           </p>
         </div>
       </div>
@@ -74,11 +74,11 @@ export default function EventsPage() {
 
                 <button
                   type="button"
-                  onClick={() => handleLocateEvent(evt.buildingId)}
+                  onClick={() => handleNavigateToEvent(evt.buildingId)}
                   className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-cyan-600 text-white font-extrabold text-xs transition-colors flex items-center gap-1.5 shrink-0 touch-target-48 active:scale-95"
                 >
                   <Navigation className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>VIEW LOCATION</span>
+                  <span>NAVIGATE</span>
                 </button>
               </div>
             </div>
@@ -118,11 +118,11 @@ export default function EventsPage() {
 
                 <button
                   type="button"
-                  onClick={() => handleLocateEvent(evt.buildingId)}
+                  onClick={() => handleNavigateToEvent(evt.buildingId)}
                   className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-cyan-600 text-white font-extrabold text-xs transition-colors flex items-center gap-1.5 shrink-0 touch-target-48 active:scale-95"
                 >
                   <Navigation className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>VIEW LOCATION</span>
+                  <span>NAVIGATE</span>
                 </button>
               </div>
             </div>

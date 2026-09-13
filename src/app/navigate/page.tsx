@@ -4,10 +4,10 @@ import React, { useEffect } from 'react';
 import { NavigationPanel } from '../../components/navigation/NavigationPanel';
 import { MobileNavOverlay } from '../../components/navigation/MobileNavOverlay';
 import { CampusMap } from '../../components/map/CampusMap';
+import { MobileSearchBar } from '../../components/common/MobileSearchBar';
 import { useCampusStore } from '../../services/campusStore';
 import { calculateCampusRoute } from '../../services/navigationService';
-import { INITIAL_BUILDINGS } from '../../data/mockCampusData';
-import { Navigation, MapPin, Search, ArrowRight } from 'lucide-react';
+import { Navigation } from 'lucide-react';
 
 export default function NavigatePage() {
   const { 
@@ -100,6 +100,8 @@ export default function NavigatePage() {
             : 'rounded-none lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-xl'
         } bg-white`}>
           <CampusMap />
+          {/* Floating search bar on mobile — hidden during live nav */}
+          {!isLiveNavActive && !activeRoute && <MobileSearchBar />}
         </div>
 
         {/* Mobile overlay (destination preview + live nav HUD) */}

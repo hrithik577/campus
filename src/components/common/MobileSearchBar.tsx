@@ -106,28 +106,29 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
   }, [buildings, q]);
 
   const handleSelectBuilding = (buildingId: string) => {
-    setSelectedBuildingId(buildingId);
-    setSelectedRoom(null);
+    const route = calculateCampusRoute('node-north-gate', buildingId, 'fastest');
+    if (route) setActiveRoute(route);
     setIsFocused(false);
     setQuery('');
-    if (onSelectResult) onSelectResult(buildingId);
+    router.push('/navigate');
   };
 
   const handleSelectRoom = (buildingId: string, room: any) => {
+    const route = calculateCampusRoute('node-north-gate', buildingId, 'fastest');
+    if (route) setActiveRoute(route);
     setSelectedBuildingId(buildingId);
     setSelectedRoom(room);
     setIsFocused(false);
     setQuery('');
-    if (onSelectResult) onSelectResult(buildingId, room.code);
+    router.push('/navigate');
   };
 
-  const handleQuickNavigate = (targetId: string, targetName: string) => {
-    const route = calculateCampusRoute('node-north-gate', targetId);
-    if (route) {
-      setActiveRoute(route);
-    }
+  const handleQuickNavigate = (targetId: string) => {
+    const route = calculateCampusRoute('node-north-gate', targetId, 'fastest');
+    if (route) setActiveRoute(route);
     setIsFocused(false);
     setQuery('');
+    router.push('/navigate');
   };
 
   if (isLiveNavActive) return null;
@@ -298,7 +299,7 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleQuickNavigate(room.buildingId, room.code);
+                        handleQuickNavigate(room.buildingId);
                       }}
                       className="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold flex items-center gap-1 shrink-0 active:scale-95"
                     >
