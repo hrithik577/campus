@@ -42,17 +42,65 @@ class VoiceNavigationService {
     }
   }
 
+  private selectPreferredNavigationVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
+    if (!voices || voices.length === 0) return null;
+
+    try {
+      // 1. Prefer female English India voice (en-IN)
+      const femaleIndianVoice = voices.find(v => {
+        const lang = v.lang.toLowerCase().replace('_', '-');
+        const name = v.name.toLowerCase();
+        const isIndianEnglish = lang.includes('en-in') || lang.includes('en_in');
+        const isFemale = name.includes('female') || name.includes('veena') || name.includes('heera') || 
+                         name.includes('priya') || name.includes('neerja') || name.includes('aditi');
+        return isIndianEnglish && isFemale;
+      }) || voices.find(v => {
+        const lang = v.lang.toLowerCase().replace('_', '-');
+        return lang.includes('en-in');
+      });
+
+      if (femaleIndianVoice) return femaleIndianVoice;
+
+      // 2. Prefer known natural female English voices
+      const femaleEnglishVoice = voices.find(v => {
+        const lang = v.lang.toLowerCase();
+        const name = v.name.toLowerCase();
+        const isEnglish = lang.startsWith('en');
+        const isFemale = name.includes('female') || name.includes('samantha') || name.includes('karen') || 
+                         name.includes('victoria') || name.includes('zira') || name.includes('jenny') || 
+                         name.includes('ava') || name.includes('moira') || name.includes('tessa') || 
+                         name.includes('fiona') || name.includes('serena') || name.includes('stephanie') ||
+                         name.includes('siri') || (name.includes('natural') && !name.includes('male'));
+        return isEnglish && isFemale;
+      });
+
+      if (femaleEnglishVoice) return femaleEnglishVoice;
+
+      // 3. Prefer any high quality English voice
+      const anyEnglishVoice = voices.find(v => {
+        const lang = v.lang.toLowerCase();
+        const name = v.name.toLowerCase();
+        return lang.startsWith('en') && (name.includes('google') || name.includes('natural') || lang.includes('en-us') || lang.includes('en-gb'));
+      }) || voices.find(v => v.lang.toLowerCase().startsWith('en'));
+
+      if (anyEnglishVoice) return anyEnglishVoice;
+
+      // 4. Fall back gracefully to the browser's default voice
+      return voices.find(v => v.default) || voices[0] || null;
+    } catch {
+      return voices[0] || null;
+    }
+  }
+
   private initVoice() {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      // Prefer natural English voices (Google US English, Samantha, Siri, etc.)
-      const preferred = voices.find(v => 
-        (v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Karen'))) ||
-        v.lang === 'en-US' || 
-        v.lang === 'en-GB'
-      );
-      this.voice = preferred || voices.find(v => v.lang.startsWith('en')) || voices[0];
+    try {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        this.voice = this.selectPreferredNavigationVoice(voices);
+      }
+    } catch (e) {
+      console.warn('Could not load speech voices:', e);
     }
   }
 
@@ -139,7 +187,7 @@ class VoiceNavigationService {
   }
 
   public onStepChange(instruction: string, distanceMeters?: number) {
-    let clean = instruction.trim();
+    const clean = instruction.trim();
     if (distanceMeters && distanceMeters > 0) {
       this.speak(`${clean}`);
     } else {

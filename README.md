@@ -48,16 +48,22 @@ CAMPUS TWIN is an enterprise-grade spatial digital twin web application for mode
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
 - **Animations**: Framer Motion & CSS SVG keyframes
-- **State Management**: Reactive CampusStore with localStorage persistence
+- **State Management**: Reactive CampusStore with localStorage persistence & role-based access control
+- **Audio & Speech Engine**: Native Web SpeechSynthesis API with preferred female navigation guidance & Web SpeechRecognition
 
 ---
 
 ## 🚀 Getting Started
 
+### 1. Environment Setup
+
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/campus-twin.git
+git clone https://github.com/hrithik577/campus.git
 cd campus-twin
+
+# Copy the environment template
+cp .env.example .env.local
 
 # Install dependencies
 npm install
@@ -70,29 +76,54 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to explore
 
 ---
 
+## ☁️ Production Deployment (Vercel)
+
+The application is fully optimized for immediate zero-config deployment on [Vercel](https://vercel.com):
+
+1. Import the repository into your Vercel dashboard.
+2. Framework preset: **Next.js**.
+3. Build command: `npm run build` (Turbopack optimized).
+4. Output directory: `.next`.
+5. Environment Variables:
+   - Configure variables as listed in `.env.example` (e.g. `NEXT_PUBLIC_CAMPUS_NAME`, `AUTH_SECRET`, `AI_API_KEY`).
+6. Deploy!
+
+---
+
 ## 📂 Project Architecture
 
 ```
 campus-twin/
+├── .env.example             # Production environment variables template
 ├── src/
-│   ├── app/                 # Next.js App Router Pages (/explore, /navigate, /facility, /reports, /events, /admin)
+│   ├── app/                 # Next.js App Router Pages (/explore, /navigate, /facility, /reports, /events, /admin, /login)
 │   ├── components/
-│   │   ├── ai/              # AIChatPanel assistant
-│   │   ├── admin/           # AdminDashboard control center
-│   │   ├── common/          # Header, CommandPalette, NotificationCenter
-│   │   ├── crowd/           # CrowdIntelligenceView
-│   │   ├── explorer/        # BuildingPanel sidebar
-│   │   ├── map/             # CampusMap SVG engine, MapControls, FloorPlanModal
-│   │   ├── navigation/      # NavigationPanel route builder
-│   │   └── reports/         # MaintenanceWizard issue submission
-│   ├── data/                # Mock Campus Dataset (Buildings, Rooms, Graph Nodes/Edges)
-│   ├── services/            # CampusStore, NavigationService, AIAssistantService
+│   │   ├── ai/              # AIChatPanel voice & text campus assistant
+│   │   ├── admin/           # AdminDashboard operations & role-guarded facility controls
+│   │   ├── common/          # Header, CommandPalette, NotificationCenter, MobileNav, MobileBottomSheet
+│   │   ├── crowd/           # CrowdIntelligenceView telemetry
+│   │   ├── explorer/        # BuildingPanel sidebar & building details
+│   │   ├── map/             # CampusMap SVG engine, MapControls, FloorPlanModal, 2.5D layer views
+│   │   ├── navigation/      # NavigationPanel, MobileNavOverlay (Google Maps-style HUD), RouteOverview
+│   │   └── reports/         # MaintenanceWizard issue submission with photo attachments
+│   ├── data/                # Campus Spatial Dataset (Buildings, Rooms, Graph Nodes & Multi-weight Edges)
+│   ├── services/            # CampusStore, NavigationService (Multi-criteria Dijkstra), AIAssistantService, VoiceNavigationService
 │   └── types/               # TypeScript interface schemas
 ```
 
 ---
 
-## 🔒 Security & Deployment
+## 📱 Mobile-First Navigation & Voice Guidance
 
-- No external API key required for demo.
-- Production-ready data architecture designed for seamless replacement of mock data with real IoT sensor APIs & PostgreSQL backends.
+- **Google Maps-Style UI**: Full-screen spatial viewport, persistent top turn-by-turn instruction card, bottom ETA & distance HUD, rerouting, and route overview sheet.
+- **Female Voice Navigation**: Utilizes `VoiceNavigationService` with intelligent voice preference (female English-India / English natural voices with graceful fallback to browser defaults).
+- **Safe Area & Touch Ready**: Strict `env(safe-area-inset-bottom)` integration and touch targets adhering to 44×44px standards.
+
+---
+
+## 🔒 Security & Data Integrity
+
+- **Role-Based Authorization**: Protected `/admin` operations area; non-admin sessions are automatically presented with authorization guards.
+- **Credential Hygiene**: No hardcoded API keys, passwords, or demo secrets committed to version control.
+- **XSS & Injection Protection**: Strict typed components without `eval` or unsafe HTML rendering.
+- **Browser API Safety**: Graceful fallbacks for browsers without SpeechSynthesis or Geolocation permissions.

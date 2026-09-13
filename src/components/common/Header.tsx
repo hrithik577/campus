@@ -51,7 +51,7 @@ export const Header: React.FC = () => {
     { href: '/navigate', label: 'Navigate', icon: NavIcon },
     { href: '/events', label: 'Events', icon: Calendar },
     { href: '/reports', label: 'Reports', icon: FileText },
-    { href: '/admin', label: 'Operations', icon: ShieldCheck },
+    ...(currentUser?.role === 'admin' ? [{ href: '/admin', label: 'Operations', icon: ShieldCheck }] : []),
   ];
 
   return (

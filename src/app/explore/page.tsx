@@ -49,7 +49,7 @@ export default function ExplorePage() {
           className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 text-xs font-semibold shadow-2xs transition-colors shrink-0"
         >
           <Search className="w-3.5 h-3.5 text-cyan-600" />
-          <span>Search spaces ('/')</span>
+          <span>Search spaces (/)</span>
         </button>
       </div>
 

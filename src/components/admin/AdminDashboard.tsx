@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { 
   ShieldAlert, 
   Activity, 
@@ -13,7 +14,10 @@ import {
   Plus,
   ArrowUpRight,
   Layers,
-  Settings
+  Settings,
+  Lock,
+  ShieldCheck,
+  ArrowRight
 } from 'lucide-react';
 import { useCampusStore } from '../../services/campusStore';
 import { MaintenanceReport, Building } from '../../types/campus';
@@ -24,11 +28,50 @@ export const AdminDashboard: React.FC = () => {
     reports, 
     updateReportStatus, 
     updateBuildingStatus,
-    notifications
+    notifications,
+    currentUser
   } = useCampusStore();
 
   const [announcementText, setAnnouncementText] = useState('');
   const [broadcastSuccess, setBroadcastSuccess] = useState(false);
+
+  // Authorization Guard
+  if (!currentUser || currentUser.role !== 'admin') {
+    return (
+      <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl text-center space-y-4 animate-in fade-in">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center">
+            <Lock className="w-7 h-7" />
+          </div>
+          <div className="space-y-1.5">
+            <span className="px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
+              Restricted Area
+            </span>
+            <h2 className="text-xl font-extrabold text-slate-900">Administrator Access Required</h2>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              The Operations & Facility Management portal is restricted to authorized Amity University Operations personnel. You are currently signed in as <span className="font-semibold text-slate-800">{currentUser ? currentUser.name : 'a Guest'}</span> ({currentUser ? currentUser.role : 'unauthenticated'}).
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
+            <Link
+              href="/login"
+              className="flex-1 py-2.5 px-4 bg-slate-900 hover:bg-cyan-600 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2"
+            >
+              <ShieldCheck className="w-4 h-4 text-amber-400" />
+              Sign in as Admin
+            </Link>
+            <Link
+              href="/explore"
+              className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              Campus Map
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const activeReports = reports.filter(r => r.status !== 'Resolved');
   const resolvedReportsCount = reports.filter(r => r.status === 'Resolved').length;

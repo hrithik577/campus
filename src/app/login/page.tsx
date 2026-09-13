@@ -58,13 +58,18 @@ export default function LoginPage() {
           department: 'Department of Computer Science & Engineering'
         };
       } else {
+        const username = emailOrId.includes('@') ? emailOrId.split('@')[0] : emailOrId;
+        const formattedName = username
+          .replace(/[._-]/g, ' ')
+          .replace(/\b\w/g, c => c.toUpperCase());
+
         user = {
-          id: 'user-101',
-          name: emailOrId.includes('Aarav') || emailOrId === '' ? 'Aarav Sharma' : emailOrId.split('@')[0],
-          email: emailOrId || 'aarav.sharma@amity.edu',
+          id: 'user-std-' + Math.random().toString(36).substring(2, 7),
+          name: formattedName || 'Student Member',
+          email: emailOrId.includes('@') ? emailOrId : `${emailOrId.toLowerCase()}@amity.edu`,
           role: 'student',
           department: 'Computer Science & Engineering',
-          studentId: 'AMITY-CS-2026-042'
+          studentId: emailOrId.includes('AMITY') ? emailOrId : 'AMITY-CS-2026-042'
         };
       }
 
@@ -80,22 +85,6 @@ export default function LoginPage() {
         }
       }, 600);
     }, 400);
-  };
-
-  const handleQuickDemoLogin = (role: 'student' | 'admin' | 'faculty') => {
-    if (role === 'admin') {
-      setEmailOrId('ops@amity.edu');
-      setPassword('admin123');
-      setLoginRole('admin');
-    } else if (role === 'faculty') {
-      setEmailOrId('vraman@amity.edu');
-      setPassword('faculty123');
-      setLoginRole('faculty');
-    } else {
-      setEmailOrId('aarav.sharma@amity.edu');
-      setPassword('student123');
-      setLoginRole('student');
-    }
   };
 
   return (
@@ -147,7 +136,7 @@ export default function LoginPage() {
                 <span>REAL-TIME SPATIAL TELEMETRY</span>
               </div>
               <p className="text-slate-200 leading-relaxed font-medium">
-                "Experience living digital twin intelligence deployed across Amity University campus complexes, research labs, & quiet study zones."
+                &ldquo;Experience living digital twin intelligence deployed across Amity University campus complexes, research labs, &amp; quiet study zones.&rdquo;
               </p>
             </div>
 
@@ -250,8 +239,8 @@ export default function LoginPage() {
                       onChange={(e) => setEmailOrId(e.target.value)}
                       placeholder={
                         loginRole === 'student' 
-                          ? 'aarav.sharma@amity.edu or AMITY-CS-2026-042' 
-                          : 'ops@amity.edu'
+                          ? 'user@amity.edu or Enrollment ID' 
+                          : 'official.identity@amity.edu'
                       }
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-cyan-500 font-medium"
                     />
@@ -319,31 +308,10 @@ export default function LoginPage() {
 
           </div>
 
-          {/* Quick Demo Credentials Footer */}
-          <div className="pt-4 border-t border-slate-100 space-y-2">
-            <div className="text-[10px] uppercase font-bold text-slate-400 text-center">
-              Quick One-Click Demo Logins
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => handleQuickDemoLogin('student')}
-                className="p-2.5 rounded-xl bg-slate-50 hover:bg-cyan-50 hover:text-cyan-900 border border-slate-200 text-slate-700 font-semibold transition-colors text-left"
-              >
-                <div className="text-[11px] font-extrabold">Student Demo</div>
-                <div className="text-[10px] text-slate-500">Aarav Sharma</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemoLogin('admin')}
-                className="p-2.5 rounded-xl bg-slate-50 hover:bg-amber-50 hover:text-amber-900 border border-slate-200 text-slate-700 font-semibold transition-colors text-left"
-              >
-                <div className="text-[11px] font-extrabold">Admin Demo</div>
-                <div className="text-[10px] text-slate-500">Ops Chief</div>
-              </button>
-            </div>
+          {/* Secure Institutional SSO Footer */}
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-center gap-2 text-[11px] text-slate-500 font-medium text-center">
+            <ShieldCheck className="w-4 h-4 text-cyan-600 shrink-0" />
+            <span>Amity University Single Sign-On (SSO) • Enterprise IAM Protected</span>
           </div>
 
         </div>

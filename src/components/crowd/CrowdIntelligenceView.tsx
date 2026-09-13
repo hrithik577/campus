@@ -123,7 +123,7 @@ export const CrowdIntelligenceView: React.FC = () => {
       <div className="pt-2">
         <div className="text-xs uppercase font-bold text-slate-400 tracking-wider mb-3 flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-cyan-600" />
-          Optimal Visit Scheduler ("Best Time to Visit")
+          Optimal Visit Scheduler (&quot;Best Time to Visit&quot;)
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">

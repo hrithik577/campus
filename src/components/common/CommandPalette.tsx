@@ -188,7 +188,7 @@ export const CommandPalette: React.FC = () => {
 
           {matchingBuildings.length === 0 && popularRooms.length === 0 && query !== '' && (
             <div className="p-8 text-center text-xs text-slate-400">
-              No campus locations found matching "{query}"
+              No campus locations found matching &quot;{query}&quot;
             </div>
           )}
 

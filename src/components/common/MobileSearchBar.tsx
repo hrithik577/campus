@@ -37,8 +37,6 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
   const [isFocused, setIsFocused] = useState(false);
   const [query, setQuery] = useState('');
 
-  if (isLiveNavActive) return null;
-
   const q = query.toLowerCase().trim();
 
   // Highlight popular featured spaces
@@ -131,6 +129,8 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
     setIsFocused(false);
     setQuery('');
   };
+
+  if (isLiveNavActive) return null;
 
   return (
     <>
@@ -343,7 +343,7 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
                 </div>
                 <div className="text-xs font-extrabold text-slate-800">No matching spaces found</div>
                 <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
-                  Try searching for "Lab 204", "Library", "Cafeteria", "Auditorium", or "C-04".
+                  Try searching for &quot;Lab 204&quot;, &quot;Library&quot;, &quot;Cafeteria&quot;, &quot;Auditorium&quot;, or &quot;C-04&quot;.
                 </p>
               </div>
             )}

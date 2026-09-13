@@ -30,7 +30,7 @@ export default function FacilityDetailPage() {
     return (
       <div className="py-16 text-center space-y-4">
         <h2 className="text-xl font-bold text-slate-900">Facility Not Found</h2>
-        <p className="text-xs text-slate-500">No campus building matched ID "{facilityId}"</p>
+        <p className="text-xs text-slate-500">No campus building matched ID &quot;{facilityId}&quot;</p>
         <button
           onClick={() => router.push('/explore')}
           className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs"

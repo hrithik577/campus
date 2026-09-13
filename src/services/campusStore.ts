@@ -78,9 +78,18 @@ class CampusStore {
         const savedBuildings = localStorage.getItem('campustwin_buildings');
         if (savedBuildings) this.buildings = JSON.parse(savedBuildings);
 
+        const savedUser = localStorage.getItem('campustwin_user');
+        if (savedUser) {
+          try {
+            this.currentUser = JSON.parse(savedUser);
+          } catch {
+            // keep fallback
+          }
+        }
+
         this.voiceEnabled = voiceNavService.getIsEnabled();
       } catch (e) {
-        console.error('Failed to load stored campus state', e);
+        // silent fail on restricted environments
       }
     }
   }
@@ -96,6 +105,11 @@ class CampusStore {
       try {
         localStorage.setItem('campustwin_reports', JSON.stringify(this.reports));
         localStorage.setItem('campustwin_buildings', JSON.stringify(this.buildings));
+        if (this.currentUser) {
+          localStorage.setItem('campustwin_user', JSON.stringify(this.currentUser));
+        } else {
+          localStorage.removeItem('campustwin_user');
+        }
       } catch (e) {
         // ignore
       }
