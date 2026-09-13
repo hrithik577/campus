@@ -7,9 +7,11 @@ import { Calendar, MapPin, Users, Clock, Sparkles, Navigation } from 'lucide-rea
 
 export default function EventsPage() {
   const router = useRouter();
-  const { events, setSelectedBuildingId } = useCampusStore();
+  const { events, setSelectedBuildingId, setSelectedRoom, setActiveRoute } = useCampusStore();
 
   const handleLocateEvent = (buildingId: string) => {
+    setActiveRoute(null);
+    setSelectedRoom(null);
     setSelectedBuildingId(buildingId);
     router.push('/explore');
   };

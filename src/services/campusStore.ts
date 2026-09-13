@@ -8,7 +8,8 @@ import {
   BuildingCategory, 
   NavigationResult,
   Room,
-  UserProfile
+  UserProfile,
+  RouteType
 } from '../types/campus';
 import { 
   INITIAL_BUILDINGS, 
@@ -17,8 +18,9 @@ import {
   INITIAL_EVENTS, 
   INITIAL_NOTIFICATIONS 
 } from '../data/mockCampusData';
+import { voiceNavService } from './voiceNavigationService';
+import { calculateCampusRoute } from './navigationService';
 
-// Shared state container for single-page app reactivity
 class CampusStore {
   private buildings: Building[] = [...INITIAL_BUILDINGS];
   private facilities: Facility[] = [...INITIAL_FACILITIES];
@@ -38,6 +40,13 @@ class CampusStore {
   };
 
   private activeRoute: NavigationResult | null = null;
+  private routeType: RouteType = 'fastest';
+  private isNavPaused: boolean = false;
+  private followMode: boolean = true;
+  private voiceEnabled: boolean = true;
+  private isRouteOverviewOpen: boolean = false;
+  private isPathIssueModalOpen: boolean = false;
+
   private currentUser: UserProfile | null = {
     id: 'user-101',
     name: 'Aarav Sharma',
@@ -46,6 +55,7 @@ class CampusStore {
     department: 'Computer Science & Engineering',
     studentId: 'AMITY-CS-2026-042'
   };
+
   private isAiAssistantOpen: boolean = false;
   private isCommandPaletteOpen: boolean = false;
   private isFloorPlanOpen: boolean = false;
@@ -60,7 +70,6 @@ class CampusStore {
   private listeners: Set<() => void> = new Set();
 
   constructor() {
-    // Load from localStorage if available
     if (typeof window !== 'undefined') {
       try {
         const savedReports = localStorage.getItem('campustwin_reports');
@@ -68,6 +77,8 @@ class CampusStore {
 
         const savedBuildings = localStorage.getItem('campustwin_buildings');
         if (savedBuildings) this.buildings = JSON.parse(savedBuildings);
+
+        this.voiceEnabled = voiceNavService.getIsEnabled();
       } catch (e) {
         console.error('Failed to load stored campus state', e);
       }
@@ -102,6 +113,12 @@ class CampusStore {
   public getActiveCategoryFilter() { return this.activeCategoryFilter; }
   public getSmartFilters() { return this.smartFilters; }
   public getActiveRoute() { return this.activeRoute; }
+  public getRouteType() { return this.routeType; }
+  public getIsNavPaused() { return this.isNavPaused; }
+  public getFollowMode() { return this.followMode; }
+  public getVoiceEnabled() { return this.voiceEnabled; }
+  public getIsRouteOverviewOpen() { return this.isRouteOverviewOpen; }
+  public getIsPathIssueModalOpen() { return this.isPathIssueModalOpen; }
   public getCurrentUser() { return this.currentUser; }
   public getIsAiAssistantOpen() { return this.isAiAssistantOpen; }
   public getIsCommandPaletteOpen() { return this.isCommandPaletteOpen; }
@@ -110,6 +127,9 @@ class CampusStore {
   public getIsNavPanelOpen() { return this.isNavPanelOpen; }
   public getIsLayersOpen() { return this.isLayersOpen; }
   public getIsCrowdOpen() { return this.isCrowdOpen; }
+  public getIsLiveNavActive() { return this.isLiveNavActive; }
+  public getCurrentNavStepIndex() { return this.currentNavStepIndex; }
+  public getIsArrivalModalOpen() { return this.isArrivalModalOpen; }
 
   // Actions
   public setCurrentUser(user: UserProfile | null) {
@@ -153,7 +173,150 @@ class CampusStore {
 
   public setActiveRoute(route: NavigationResult | null) {
     this.activeRoute = route;
-    if (route) this.isNavPanelOpen = true;
+    if (route) {
+      this.isNavPanelOpen = true;
+      if (route.routeType) this.routeType = route.routeType;
+    }
+    this.notify();
+  }
+
+  public setRouteType(type: RouteType) {
+    this.routeType = type;
+    if (this.activeRoute) {
+      const updated = calculateCampusRoute(
+        this.activeRoute.fromLocation,
+        this.activeRoute.toLocation,
+        type
+      );
+      if (updated) {
+        this.activeRoute = updated;
+      }
+    }
+    this.notify();
+  }
+
+  public setLiveNavActive(active: boolean) {
+    this.isLiveNavActive = active;
+    if (active) {
+      this.currentNavStepIndex = 0;
+      this.isArrivalModalOpen = false;
+      this.isNavPaused = false;
+      this.followMode = true;
+      if (this.activeRoute) {
+        voiceNavService.onNavigationStart(this.activeRoute.toLocation);
+      }
+    } else {
+      voiceNavService.cancel();
+      this.isNavPaused = false;
+    }
+    this.notify();
+  }
+
+  public setNavPaused(paused: boolean) {
+    this.isNavPaused = paused;
+    if (paused) {
+      voiceNavService.cancel();
+      voiceNavService.speak('Navigation paused.');
+    } else {
+      voiceNavService.speak('Resuming navigation.');
+      if (this.activeRoute && this.activeRoute.steps[this.currentNavStepIndex]) {
+        voiceNavService.onStepChange(this.activeRoute.steps[this.currentNavStepIndex].instruction);
+      }
+    }
+    this.notify();
+  }
+
+  public setFollowMode(mode: boolean) {
+    this.followMode = mode;
+    this.notify();
+  }
+
+  public setVoiceEnabled(enabled: boolean) {
+    this.voiceEnabled = enabled;
+    voiceNavService.setIsEnabled(enabled);
+    this.notify();
+  }
+
+  public setCurrentNavStepIndex(idx: number) {
+    this.currentNavStepIndex = idx;
+    if (this.isLiveNavActive && this.activeRoute && !this.isNavPaused) {
+      const step = this.activeRoute.steps[idx];
+      if (step) {
+        if (step.turnType === 'entrance' && step.indoorTransition) {
+          voiceNavService.onBuildingEntrance(step.indoorTransition.buildingName);
+        } else if (step.turnType === 'elevator' && step.indoorTransition) {
+          voiceNavService.onFloorTransition(step.indoorTransition.floorNumber);
+        } else if (step.turnType === 'arrive') {
+          voiceNavService.onArrival(this.activeRoute.toLocation);
+        } else {
+          voiceNavService.onStepChange(step.instruction, step.distanceMeters);
+        }
+      }
+    }
+    this.notify();
+  }
+
+  public setArrivalModalOpen(open: boolean) {
+    this.isArrivalModalOpen = open;
+    if (open && this.activeRoute) {
+      voiceNavService.onArrival(this.activeRoute.toLocation);
+    }
+    this.notify();
+  }
+
+  public setRouteOverviewOpen(open: boolean) {
+    this.isRouteOverviewOpen = open;
+    this.notify();
+  }
+
+  public setPathIssueModalOpen(open: boolean) {
+    this.isPathIssueModalOpen = open;
+    this.notify();
+  }
+
+  public reportPathIssue(issueType: string, locationName: string, notes?: string) {
+    const reportId = `CT-${Math.floor(1000 + Math.random() * 9000)}`;
+    const now = new Date().toISOString();
+    const newReport: MaintenanceReport = {
+      id: reportId,
+      location: locationName || 'Active Navigation Route',
+      buildingId: this.selectedBuildingId || 'cs-block',
+      category: 'Other',
+      priority: 'high',
+      description: `Path Hazard: ${issueType}${notes ? ` - ${notes}` : ''}`,
+      reporterName: this.currentUser?.name || 'Anonymous Student',
+      status: 'Reported',
+      createdAt: now,
+      updatedAt: now
+    };
+
+    this.reports.unshift(newReport);
+    this.notifications.unshift({
+      id: `notif-${Date.now()}`,
+      title: `Hazard Reported: ${reportId}`,
+      message: `Your walkway report for ${locationName} was flagged to Campus Safety.`,
+      timestamp: 'Just now',
+      type: 'warning',
+      read: false
+    });
+
+    voiceNavService.speak('Hazard reported to campus operations.');
+    this.isPathIssueModalOpen = false;
+    this.notify();
+  }
+
+  public rerouteNavigation() {
+    if (!this.activeRoute) return;
+    voiceNavService.onReroute();
+
+    const fromLoc = this.activeRoute.fromLocation;
+    const toLoc = this.activeRoute.toLocation;
+    const newRoute = calculateCampusRoute(fromLoc, toLoc, this.routeType);
+    if (newRoute) {
+      this.activeRoute = newRoute;
+      this.currentNavStepIndex = 0;
+      this.followMode = true;
+    }
     this.notify();
   }
 
@@ -189,29 +352,6 @@ class CampusStore {
 
   public setCrowdOpen(open: boolean) {
     this.isCrowdOpen = open;
-    this.notify();
-  }
-
-  public getIsLiveNavActive() { return this.isLiveNavActive; }
-  public getCurrentNavStepIndex() { return this.currentNavStepIndex; }
-  public getIsArrivalModalOpen() { return this.isArrivalModalOpen; }
-
-  public setLiveNavActive(active: boolean) {
-    this.isLiveNavActive = active;
-    if (active) {
-      this.currentNavStepIndex = 0;
-      this.isArrivalModalOpen = false;
-    }
-    this.notify();
-  }
-
-  public setCurrentNavStepIndex(idx: number) {
-    this.currentNavStepIndex = idx;
-    this.notify();
-  }
-
-  public setArrivalModalOpen(open: boolean) {
-    this.isArrivalModalOpen = open;
     this.notify();
   }
 
@@ -256,7 +396,6 @@ class CampusStore {
       report.updatedAt = new Date().toISOString();
       if (technician) report.assignedTechnician = technician;
 
-      // If resolved, reduce maintenance alert count on building
       if (status === 'Resolved') {
         const bldg = this.buildings.find(b => b.id === report.buildingId);
         if (bldg && bldg.maintenanceAlertsCount > 0) {
@@ -327,6 +466,12 @@ export function useCampusStore() {
     activeCategoryFilter: campusStore.getActiveCategoryFilter(),
     smartFilters: campusStore.getSmartFilters(),
     activeRoute: campusStore.getActiveRoute(),
+    routeType: campusStore.getRouteType(),
+    isNavPaused: campusStore.getIsNavPaused(),
+    followMode: campusStore.getFollowMode(),
+    voiceEnabled: campusStore.getVoiceEnabled(),
+    isRouteOverviewOpen: campusStore.getIsRouteOverviewOpen(),
+    isPathIssueModalOpen: campusStore.getIsPathIssueModalOpen(),
     currentUser: campusStore.getCurrentUser(),
     isAiAssistantOpen: campusStore.getIsAiAssistantOpen(),
     isCommandPaletteOpen: campusStore.getIsCommandPaletteOpen(),
@@ -347,6 +492,17 @@ export function useCampusStore() {
     setActiveCategoryFilter: (cat: BuildingCategory | 'all') => campusStore.setActiveCategoryFilter(cat),
     toggleSmartFilter: (key: keyof ReturnType<typeof campusStore.getSmartFilters>) => campusStore.toggleSmartFilter(key),
     setActiveRoute: (route: NavigationResult | null) => campusStore.setActiveRoute(route),
+    setRouteType: (type: RouteType) => campusStore.setRouteType(type),
+    setLiveNavActive: (active: boolean) => campusStore.setLiveNavActive(active),
+    setNavPaused: (paused: boolean) => campusStore.setNavPaused(paused),
+    setFollowMode: (mode: boolean) => campusStore.setFollowMode(mode),
+    setVoiceEnabled: (enabled: boolean) => campusStore.setVoiceEnabled(enabled),
+    setRouteOverviewOpen: (open: boolean) => campusStore.setRouteOverviewOpen(open),
+    setPathIssueModalOpen: (open: boolean) => campusStore.setPathIssueModalOpen(open),
+    reportPathIssue: (type: string, loc: string, notes?: string) => campusStore.reportPathIssue(type, loc, notes),
+    rerouteNavigation: () => campusStore.rerouteNavigation(),
+    setCurrentNavStepIndex: (idx: number) => campusStore.setCurrentNavStepIndex(idx),
+    setArrivalModalOpen: (open: boolean) => campusStore.setArrivalModalOpen(open),
     setAiAssistantOpen: (open: boolean) => campusStore.setAiAssistantOpen(open),
     setCommandPaletteOpen: (open: boolean) => campusStore.setCommandPaletteOpen(open),
     setFloorPlanOpen: (open: boolean) => campusStore.setFloorPlanOpen(open),
@@ -354,9 +510,6 @@ export function useCampusStore() {
     setNavPanelOpen: (open: boolean) => campusStore.setNavPanelOpen(open),
     setLayersOpen: (open: boolean) => campusStore.setLayersOpen(open),
     setCrowdOpen: (open: boolean) => campusStore.setCrowdOpen(open),
-    setLiveNavActive: (active: boolean) => campusStore.setLiveNavActive(active),
-    setCurrentNavStepIndex: (idx: number) => campusStore.setCurrentNavStepIndex(idx),
-    setArrivalModalOpen: (open: boolean) => campusStore.setArrivalModalOpen(open),
     addReport: (rep: Omit<MaintenanceReport, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => campusStore.addReport(rep),
     updateReportStatus: (id: string, st: MaintenanceReport['status'], tech?: string) => campusStore.updateReportStatus(id, st, tech),
     updateBuildingStatus: (id: string, st: Building['status'], occ?: number, crd?: Building['crowdLevel']) => campusStore.updateBuildingStatus(id, st, occ, crd),

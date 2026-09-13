@@ -127,12 +127,22 @@ export interface CampusGraphEdge {
   isAccessible: boolean;
 }
 
+export type RouteType = 'fastest' | 'accessible' | 'crowd' | 'covered';
+export type TurnType = 'straight' | 'left' | 'right' | 'slight_left' | 'slight_right' | 'entrance' | 'elevator' | 'stairs' | 'arrive';
+
 export interface RouteNavigationStep {
   stepIndex: number;
   instruction: string;
   distanceMeters: number;
   nodeId: string;
   coords: { x: number; y: number };
+  turnType?: TurnType;
+  landmark?: string;
+  indoorTransition?: {
+    buildingName: string;
+    floorNumber: number;
+    roomCode?: string;
+  };
 }
 
 export interface NavigationResult {
@@ -141,6 +151,8 @@ export interface NavigationResult {
   totalDistanceMeters: number;
   estimatedWalkingMinutes: number;
   isAccessibleRoute: boolean;
+  routeType?: RouteType;
+  etaText?: string;
   steps: RouteNavigationStep[];
   pathPoints: { x: number; y: number }[];
 }

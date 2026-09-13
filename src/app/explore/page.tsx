@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { MapControls } from '../../components/map/MapControls';
 import { CampusMap } from '../../components/map/CampusMap';
 import { BuildingPanel } from '../../components/explorer/BuildingPanel';
@@ -12,13 +12,13 @@ import { MobileCrowdSheet } from '../../components/crowd/MobileCrowdSheet';
 import { MobileLayersSheet } from '../../components/map/MobileLayersSheet';
 import { MobileNavOverlay } from '../../components/navigation/MobileNavOverlay';
 import { useCampusStore } from '../../services/campusStore';
-import { Search, MapPin, Layers, Activity, Compass } from 'lucide-react';
+import { Search, MapPin, Layers, Activity } from 'lucide-react';
 
 export default function ExplorePage() {
   const { 
-    selectedBuildingId,
+    selectedBuildingId, 
     setSelectedBuildingId,
-    selectedRoom,
+    selectedRoom, 
     setSelectedRoom,
     activeRoute, 
     setCommandPaletteOpen,
@@ -26,14 +26,19 @@ export default function ExplorePage() {
     isLayersOpen,
     setLayersOpen,
     isCrowdOpen,
-    setCrowdOpen
+    setCrowdOpen,
+    isLiveNavActive
   } = useCampusStore();
 
+  const containerHeightClass = isLiveNavActive 
+    ? "h-[100dvh] lg:h-[calc(100vh-6.5rem)]" 
+    : "h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] lg:h-[calc(100vh-6.5rem)]";
+
   return (
-    <div className="h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] lg:h-[calc(100vh-6.5rem)] w-full flex flex-col relative overflow-hidden">
+    <div className={`${containerHeightClass} w-full flex flex-col relative overflow-hidden`}>
       
-      {/* MOBILE FLOATING TOP SEARCH BAR */}
-      <MobileSearchBar />
+      {/* MOBILE FLOATING TOP SEARCH BAR (Hidden during active live navigation) */}
+      {!isLiveNavActive && <MobileSearchBar />}
 
       {/* DESKTOP TOP FILTER BAR (>= lg) */}
       <div className="hidden lg:flex items-center justify-between gap-3 mb-3">
@@ -70,30 +75,32 @@ export default function ExplorePage() {
           )}
         </div>
 
-        {/* PRIMARY INTERACTIVE CAMPUS MAP (100dvh on mobile) */}
+        {/* PRIMARY INTERACTIVE CAMPUS MAP (100dvh edge-to-edge on mobile) */}
         <div className="lg:col-span-8 xl:col-span-8 h-full w-full relative rounded-none lg:rounded-2xl overflow-hidden shadow-xl border-0 lg:border border-slate-200 bg-white">
           <CampusMap />
 
-          {/* MOBILE EXTRA FLOATING QUICK TOGGLES (Layers & Pulse) */}
-          <div className="lg:hidden absolute bottom-20 left-3 flex items-center gap-2 z-20">
-            <button
-              type="button"
-              onClick={() => setLayersOpen(true)}
-              className="px-3 py-2 rounded-2xl bg-white/95 backdrop-blur-md shadow-xl border border-slate-200 text-slate-800 text-xs font-extrabold flex items-center gap-1.5 touch-target-48 active:scale-95"
-            >
-              <Layers className="w-4 h-4 text-cyan-600" />
-              <span>Layers</span>
-            </button>
+          {/* MOBILE EXTRA FLOATING QUICK TOGGLES (Layers & Pulse - hidden in live nav) */}
+          {!isLiveNavActive && (
+            <div className="lg:hidden absolute bottom-20 left-3 flex items-center gap-2 z-20">
+              <button
+                type="button"
+                onClick={() => setLayersOpen(true)}
+                className="px-3 py-2 rounded-2xl bg-white/95 backdrop-blur-md shadow-xl border border-slate-200 text-slate-800 text-xs font-extrabold flex items-center gap-1.5 touch-target-48 active:scale-95"
+              >
+                <Layers className="w-4 h-4 text-cyan-600" />
+                <span>Layers</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setCrowdOpen(true)}
-              className="px-3 py-2 rounded-2xl bg-white/95 backdrop-blur-md shadow-xl border border-slate-200 text-slate-800 text-xs font-extrabold flex items-center gap-1.5 touch-target-48 active:scale-95"
-            >
-              <Activity className="w-4 h-4 text-rose-500 animate-pulse" />
-              <span>Pulse</span>
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => setCrowdOpen(true)}
+                className="px-3 py-2 rounded-2xl bg-white/95 backdrop-blur-md shadow-xl border border-slate-200 text-slate-800 text-xs font-extrabold flex items-center gap-1.5 touch-target-48 active:scale-95"
+              >
+                <Activity className="w-4 h-4 text-rose-500 animate-pulse" />
+                <span>Pulse</span>
+              </button>
+            </div>
+          )}
         </div>
 
       </div>
@@ -104,25 +111,25 @@ export default function ExplorePage() {
 
       {/* 2. Building Sheet */}
       <MobileBuildingSheet
-        isOpen={Boolean(selectedBuildingId && !selectedRoom && !activeRoute && !isNavPanelOpen)}
+        isOpen={Boolean(selectedBuildingId && !selectedRoom && !activeRoute && !isLiveNavActive)}
         onClose={() => setSelectedBuildingId(null)}
       />
 
       {/* 3. Room Sheet */}
       <MobileRoomSheet
-        isOpen={Boolean(selectedRoom && !activeRoute && !isNavPanelOpen)}
+        isOpen={Boolean(selectedRoom && !activeRoute && !isLiveNavActive)}
         onClose={() => setSelectedRoom(null)}
       />
 
       {/* 4. Layers Sheet */}
       <MobileLayersSheet
-        isOpen={isLayersOpen}
+        isOpen={isLayersOpen && !isLiveNavActive}
         onClose={() => setLayersOpen(false)}
       />
 
       {/* 5. Crowd Pulse Sheet */}
       <MobileCrowdSheet
-        isOpen={isCrowdOpen}
+        isOpen={isCrowdOpen && !isLiveNavActive}
         onClose={() => setCrowdOpen(false)}
       />
 

@@ -3,24 +3,26 @@
 import React, { useEffect } from 'react';
 import { NavigationPanel } from '../../components/navigation/NavigationPanel';
 import { MobileNavOverlay } from '../../components/navigation/MobileNavOverlay';
+import { MobileSearchBar } from '../../components/common/MobileSearchBar';
 import { CampusMap } from '../../components/map/CampusMap';
 import { useCampusStore } from '../../services/campusStore';
 import { calculateCampusRoute } from '../../services/navigationService';
 import { Navigation } from 'lucide-react';
 
 export default function NavigatePage() {
-  const { activeRoute, setActiveRoute, selectedBuildingId } = useCampusStore();
+  const { activeRoute, setActiveRoute, selectedBuildingId, isLiveNavActive } = useCampusStore();
 
   useEffect(() => {
     if (!activeRoute) {
       const targetId = selectedBuildingId || 'cs-block';
-      const route = calculateCampusRoute('node-north-gate', targetId, false);
+      const route = calculateCampusRoute('node-north-gate', targetId, 'fastest');
       if (route) setActiveRoute(route);
     }
   }, [activeRoute, selectedBuildingId, setActiveRoute]);
 
   return (
     <div className="h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] lg:h-[calc(100vh-6.5rem)] w-full flex flex-col relative overflow-hidden">
+      {!isLiveNavActive && <MobileSearchBar />}
       {/* DESKTOP HEADER (Hidden on mobile) */}
       <div className="hidden lg:flex items-center justify-between border-b border-slate-200 pb-3 mb-3">
         <div>
