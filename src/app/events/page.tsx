@@ -18,10 +18,10 @@ export default function EventsPage() {
   const upcomingEvents = events.slice(2);
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto py-2 px-4 sm:px-0 pb-16 lg:pb-0">
+    <div className="space-y-4 max-w-5xl mx-auto py-2 px-3.5 sm:px-0 pb-20 lg:pb-0">
       
-      {/* Header Banner */}
-      <div className="p-5 sm:p-6 bg-slate-900 text-white rounded-3xl shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header Banner (Desktop Only) */}
+      <div className="hidden lg:flex p-5 sm:p-6 bg-slate-900 text-white rounded-3xl shadow-xl flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded text-[10px] font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">

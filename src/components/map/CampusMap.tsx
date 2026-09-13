@@ -381,43 +381,43 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         })}
       </svg>
 
-      {/* MAP FLOATING UTILITY CONTROLS (Zoom, Pan, Locate, Compass) */}
-      <div className="absolute top-18 lg:top-4 right-3 flex flex-col gap-2 z-20 pointer-events-auto">
-        <div className="bg-white/95 backdrop-blur-md p-1.5 rounded-2xl shadow-xl border border-slate-200 flex flex-col gap-1">
+      {/* MAP FLOATING UTILITY CONTROLS (+, −, Locate, Compass, Layers) */}
+      <div className="absolute top-16 lg:top-4 right-3 flex flex-col gap-1.5 z-20 pointer-events-auto">
+        <div className="bg-white/95 backdrop-blur-md p-1 rounded-2xl shadow-md border border-slate-200/90 flex flex-col gap-1">
           <button
             onClick={handleZoomIn}
-            className="w-11 h-11 text-slate-800 hover:text-cyan-600 hover:bg-slate-100 rounded-xl text-base font-extrabold transition-colors flex items-center justify-center touch-target-48 active:scale-95"
+            className="w-10 h-10 text-slate-800 hover:text-cyan-600 hover:bg-slate-100 rounded-xl text-base font-extrabold transition-colors flex items-center justify-center active:scale-95"
             title="Zoom In"
           >
             +
           </button>
           <button
             onClick={handleZoomOut}
-            className="w-11 h-11 text-slate-800 hover:text-cyan-600 hover:bg-slate-100 rounded-xl text-base font-extrabold transition-colors flex items-center justify-center touch-target-48 active:scale-95"
+            className="w-10 h-10 text-slate-800 hover:text-cyan-600 hover:bg-slate-100 rounded-xl text-base font-extrabold transition-colors flex items-center justify-center active:scale-95"
             title="Zoom Out"
           >
             −
           </button>
           <button
             onClick={handleLocateUser}
-            className="w-11 h-11 text-slate-800 hover:text-cyan-600 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center touch-target-48 active:scale-95"
+            className="w-10 h-10 text-slate-800 hover:text-cyan-600 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center active:scale-95"
             title="Locate Me"
           >
-            <MapPin className="w-5 h-5 text-cyan-600" />
+            <MapPin className="w-4.5 h-4.5 text-cyan-600" />
           </button>
           <button
             onClick={resetView}
-            className="w-11 h-11 text-slate-800 hover:text-cyan-600 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center touch-target-48 active:scale-95"
+            className="w-10 h-10 text-slate-800 hover:text-cyan-600 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center active:scale-95"
             title="Reset Orientation"
           >
-            <Compass className="w-5 h-5 text-slate-600" />
+            <Compass className="w-4.5 h-4.5 text-slate-600" />
           </button>
           <button
             onClick={() => setLayersOpen(!isLayersOpen)}
-            className={`w-11 h-11 ${isLayersOpen ? 'text-cyan-600 bg-cyan-50' : 'text-slate-800 hover:text-cyan-600 hover:bg-slate-100'} rounded-xl transition-colors flex items-center justify-center touch-target-48 active:scale-95`}
+            className={`w-10 h-10 ${isLayersOpen ? 'text-cyan-600 bg-cyan-50' : 'text-slate-800 hover:text-cyan-600 hover:bg-slate-100'} rounded-xl transition-colors flex items-center justify-center active:scale-95`}
             title="Toggle Map Layers"
           >
-            <Layers className="w-5 h-5 text-cyan-600" />
+            <Layers className="w-4.5 h-4.5 text-cyan-600" />
           </button>
         </div>
       </div>

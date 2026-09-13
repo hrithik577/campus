@@ -77,20 +77,15 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
 
   return (
     <>
-      {/* Default Floating Search Field at top of Mobile Viewport */}
-      <div className="lg:hidden absolute top-3 left-3 right-3 z-30 pointer-events-auto">
+      {/* Default Floating Search Pill over Map Viewport */}
+      <div className="lg:hidden absolute top-3 left-3.5 right-3.5 z-30 pointer-events-auto">
         <button
           type="button"
           onClick={() => setIsFocused(true)}
-          className="w-full h-13 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-xl px-4 flex items-center justify-between text-left touch-target-48 active:scale-[0.99] transition-all"
+          className="w-full h-12 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-lg px-4 flex items-center gap-3 text-left active:scale-[0.98] transition-all"
         >
-          <div className="flex items-center gap-3 text-slate-500">
-            <Search className="w-5 h-5 text-cyan-600" />
-            <span className="text-xs font-semibold text-slate-700">Search campus, rooms, labs...</span>
-          </div>
-          <span className="px-2 py-1 bg-slate-100 rounded-lg text-[10px] font-mono font-bold text-slate-500 uppercase">
-            SEARCH
-          </span>
+          <Search className="w-4 h-4 text-cyan-600 shrink-0" />
+          <span className="text-xs font-semibold text-slate-600 truncate">Search campus, rooms, labs...</span>
         </button>
       </div>
 

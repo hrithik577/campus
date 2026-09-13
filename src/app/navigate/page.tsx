@@ -8,8 +8,9 @@ import { Navigation } from 'lucide-react';
 
 export default function NavigatePage() {
   return (
-    <div className="space-y-4 h-[calc(100dvh-7rem)] flex flex-col px-3 sm:px-0">
-      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+    <div className="h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] lg:h-[calc(100vh-6.5rem)] w-full flex flex-col relative overflow-hidden">
+      {/* DESKTOP HEADER (Hidden on mobile) */}
+      <div className="hidden lg:flex items-center justify-between border-b border-slate-200 pb-3 mb-3">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
             <Navigation className="w-5 h-5 text-cyan-600" />
@@ -21,19 +22,19 @@ export default function NavigatePage() {
         </div>
       </div>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-0 relative">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-0 relative overflow-hidden">
         {/* DESKTOP SIDE PANEL (>= lg) */}
-        <div className="hidden lg:block lg:col-span-4 h-full overflow-y-auto">
+        <div className="hidden lg:block lg:col-span-4 h-full overflow-y-auto z-20">
           <NavigationPanel />
         </div>
 
-        {/* MAP CONTAINER (Full height on mobile, 8 cols on desktop) */}
-        <div className="col-span-1 lg:col-span-8 h-full relative rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-xl">
+        {/* MAP CONTAINER (100dvh full-bleed on mobile, 8 cols on desktop) */}
+        <div className="lg:col-span-8 h-full relative rounded-none lg:rounded-2xl overflow-hidden border-0 lg:border border-slate-200 bg-white shadow-xl">
           <CampusMap />
         </div>
 
-        {/* MOBILE FLOATING OVERLAY (< lg) */}
-        <div className="block lg:hidden fixed bottom-16 left-3 right-3 z-30 max-h-[50vh] overflow-y-auto">
+        {/* MOBILE FLOATING NAVIGATION OVERLAY (< lg) */}
+        <div className="lg:hidden fixed bottom-18 left-3 right-3 z-30 max-h-[60vh] overflow-y-auto">
           <NavigationPanel />
         </div>
       </div>

@@ -54,8 +54,8 @@ export const Header: React.FC = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs transition-all pt-[env(safe-area-inset-top,0px)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-15 flex items-center justify-between gap-2">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/70 shadow-xs transition-all pt-[env(safe-area-inset-top,0px)]">
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-13 sm:h-15 flex items-center justify-between gap-2">
         
         {/* Brand System */}
         <div className="flex items-center gap-2 sm:gap-6">

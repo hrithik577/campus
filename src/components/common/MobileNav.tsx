@@ -28,7 +28,7 @@ export const MobileNav: React.FC = () => {
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-2xl px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] flex items-center justify-between select-none touch-none">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-2xl px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-between select-none pointer-events-auto">
       
       {/* 1. Explore Tab */}
       <Link

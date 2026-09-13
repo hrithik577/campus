@@ -47,10 +47,10 @@ export const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-full overflow-x-hidden px-4 sm:px-0">
+    <div className="space-y-4 max-w-full overflow-x-hidden px-3.5 sm:px-0 pb-20 lg:pb-0">
       
-      {/* Top Header Banner */}
-      <div className="p-5 sm:p-6 bg-slate-900 rounded-3xl text-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+      {/* Top Header Banner (Desktop Only) */}
+      <div className="hidden lg:flex p-5 sm:p-6 bg-slate-900 rounded-3xl text-white flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded text-[10px] font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 tracking-wider">
