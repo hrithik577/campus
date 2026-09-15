@@ -41,8 +41,14 @@ const AvailBadge: React.FC<{ available: boolean }> = ({ available }) =>
     </span>
   );
 
-const FacultyRow: React.FC<{ f: Faculty }> = ({ f }) => (
-  <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-slate-200 transition-all">
+import { useCampusStore } from '../../services/campusStore';
+
+const FacultyRow: React.FC<{ f: Faculty; onSelect?: () => void }> = ({ f, onSelect }) => (
+  <button
+    type="button"
+    onClick={onSelect}
+    className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-violet-50/50 hover:border-violet-200 transition-all text-left active:scale-[0.99] cursor-pointer"
+  >
     <div
       className={`w-10 h-10 rounded-2xl ${f.avatarColor} flex items-center justify-center shrink-0 shadow-sm`}
     >
@@ -55,8 +61,11 @@ const FacultyRow: React.FC<{ f: Faculty }> = ({ f }) => (
         <div className="text-[9px] text-cyan-600 font-bold mt-0.5 truncate">{f.subject}</div>
       )}
     </div>
-    <AvailBadge available={f.isAvailable} />
-  </div>
+    <div className="flex items-center gap-1.5 shrink-0">
+      <AvailBadge available={f.isAvailable} />
+      <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+    </div>
+  </button>
 );
 
 type AnyRoom = FacultyRoom | Room;
@@ -114,6 +123,7 @@ export const FacultyRoomSheet: React.FC<FacultyRoomSheetProps> = ({
   facultyRooms = [],
   classrooms = [],
 }) => {
+  const { setSelectedFacultyId, setSelectedClassroomId } = useCampusStore();
   const [selectedRoom, setSelectedRoom] = useState<AnyRoom | null>(null);
 
   const allRooms: AnyRoom[] = [
@@ -254,7 +264,11 @@ export const FacultyRoomSheet: React.FC<FacultyRoomSheetProps> = ({
           ) : (
             <div className="space-y-2">
               {selectedFaculty.map((f) => (
-                <FacultyRow key={f.id} f={f} />
+                <FacultyRow
+                  key={f.id}
+                  f={f}
+                  onSelect={() => setSelectedFacultyId(f.id)}
+                />
               ))}
             </div>
           )}

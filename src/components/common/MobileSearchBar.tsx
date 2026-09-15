@@ -15,10 +15,13 @@ import {
   Building as BuildingIcon,
   CheckCircle2,
   Clock,
-  Zap
+  Zap,
+  GraduationCap,
+  DoorOpen
 } from 'lucide-react';
 import { useCampusStore } from '../../services/campusStore';
 import { calculateCampusRoute } from '../../services/navigationService';
+import { facultyService } from '../../services/facultyService';
 
 interface MobileSearchBarProps {
   onSelectResult?: (buildingId: string, roomCode?: string) => void;
@@ -31,7 +34,11 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
     setSelectedBuildingId, 
     setSelectedRoom,
     setActiveRoute,
-    isLiveNavActive
+    isLiveNavActive,
+    setSelectedFacultyId,
+    setSelectedClassroomId,
+    setFacultyDirectoryOpen,
+    setClassroomDirectoryOpen
   } = useCampusStore();
 
   const [isFocused, setIsFocused] = useState(false);
@@ -95,6 +102,7 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
   }, [buildings, q]);
 
   // Filtered buildings
+  // Filtered buildings
   const matchingBuildings = useMemo(() => {
     if (!q) return [];
     return buildings.filter(b => 
@@ -104,6 +112,18 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
       b.facilities.some(f => f.toLowerCase().includes(q))
     );
   }, [buildings, q]);
+
+  // Filtered faculty members
+  const matchingFaculty = useMemo(() => {
+    if (!q) return [];
+    return facultyService.search(q).faculty;
+  }, [q]);
+
+  // Filtered classrooms
+  const matchingClassrooms = useMemo(() => {
+    if (!q) return [];
+    return facultyService.search(q).classrooms;
+  }, [q]);
 
   const handleSelectBuilding = (buildingId: string) => {
     setSelectedBuildingId(buildingId);
@@ -119,6 +139,18 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
     setIsFocused(false);
     setQuery('');
     // Stay on /explore — room sheet will open (Place Card step)
+  };
+
+  const handleSelectFaculty = (facultyId: string) => {
+    setSelectedFacultyId(facultyId);
+    setIsFocused(false);
+    setQuery('');
+  };
+
+  const handleSelectClassroom = (classroomId: string) => {
+    setSelectedClassroomId(classroomId);
+    setIsFocused(false);
+    setQuery('');
   };
 
   const handleQuickNavigate = (targetId: string) => {
@@ -247,6 +279,36 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
                     CATEGORIES
                   </div>
                   <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFocused(false);
+                        setFacultyDirectoryOpen(true);
+                      }}
+                      className="p-3 bg-gradient-to-br from-violet-50 to-indigo-50/50 rounded-xl border border-violet-200 flex items-center gap-2.5 text-xs font-bold text-violet-900 hover:border-violet-300 active:scale-95 transition-all text-left shadow-2xs"
+                    >
+                      <GraduationCap className="w-4 h-4 text-violet-600" />
+                      <div>
+                        <span>Faculty Members</span>
+                        <span className="text-[9px] text-violet-600/80 block font-medium">Find teachers & cabins</span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFocused(false);
+                        setClassroomDirectoryOpen(true);
+                      }}
+                      className="p-3 bg-gradient-to-br from-cyan-50 to-blue-50/50 rounded-xl border border-cyan-200 flex items-center gap-2.5 text-xs font-bold text-cyan-900 hover:border-cyan-300 active:scale-95 transition-all text-left shadow-2xs"
+                    >
+                      <DoorOpen className="w-4 h-4 text-cyan-600" />
+                      <div>
+                        <span>Classrooms & Cabins</span>
+                        <span className="text-[9px] text-cyan-600/80 block font-medium">Room 217, 317, schedules</span>
+                      </div>
+                    </button>
+
                     {[
                       { label: 'Computer Labs', icon: Zap, id: 'cs-block' },
                       { label: 'Central Library', icon: BookOpen, id: 'central-lib' },
@@ -271,11 +333,106 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
               </div>
             )}
 
+            {/* Matching Faculty Results */}
+            {matchingFaculty.length > 0 && (
+              <div className="pt-3 space-y-2">
+                <div className="text-[10px] font-extrabold uppercase tracking-wider text-violet-600 flex items-center gap-1.5">
+                  <GraduationCap className="w-3.5 h-3.5" />
+                  FACULTY MEMBERS ({matchingFaculty.length})
+                </div>
+                {matchingFaculty.map((faculty) => (
+                  <div
+                    key={faculty.id}
+                    onClick={() => handleSelectFaculty(faculty.id)}
+                    className="p-3 bg-white rounded-2xl border border-violet-100 hover:border-violet-300 shadow-2xs flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                      <div className={`w-9 h-9 rounded-xl ${faculty.avatarColor} text-white flex items-center justify-center font-bold text-xs shrink-0`}>
+                        {faculty.name.substring(0, 2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-extrabold text-slate-900 text-xs truncate">{faculty.name}</span>
+                          <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-black uppercase ${
+                            faculty.isAvailable ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                          }`}>
+                            ● {faculty.isAvailable ? 'Available' : 'Busy'}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 truncate">
+                          Room {faculty.roomNo} · Floor {faculty.floor} · {faculty.block} ({faculty.subject || faculty.designation})
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleQuickNavigate(faculty.buildingId || 'ab2-block');
+                      }}
+                      className="px-2.5 py-1.5 rounded-xl bg-violet-600 text-white text-[11px] font-bold flex items-center gap-1 shrink-0 active:scale-95 shadow-sm"
+                    >
+                      <Navigation className="w-3 h-3 fill-white stroke-none" />
+                      <span>Route</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Matching Classrooms Results */}
+            {matchingClassrooms.length > 0 && (
+              <div className="pt-3 space-y-2">
+                <div className="text-[10px] font-extrabold uppercase tracking-wider text-cyan-600 flex items-center gap-1.5">
+                  <DoorOpen className="w-3.5 h-3.5" />
+                  CLASSROOMS & CABINS ({matchingClassrooms.length})
+                </div>
+                {matchingClassrooms.map((room) => {
+                  const facultyInRoom = facultyService.getFacultyForRoom(room.id);
+                  return (
+                    <div
+                      key={room.id}
+                      onClick={() => handleSelectClassroom(room.id)}
+                      className="p-3 bg-white rounded-2xl border border-cyan-100 hover:border-cyan-300 shadow-2xs flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-extrabold text-slate-900 text-xs">Room {room.roomNumber}</span>
+                          <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-black uppercase ${
+                            room.currentStatus === 'available' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                          }`}>
+                            ● {room.currentStatus}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-0.5 truncate">
+                          Floor {room.floor} · {room.block} Block · {room.type === 'faculty_room' ? 'Faculty Room' : 'Classroom'}
+                          {facultyInRoom.length > 0 && ` · Faculty: ${facultyInRoom.map(f => f.name).join(', ')}`}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuickNavigate(room.buildingId || 'ab2-block');
+                        }}
+                        className="px-2.5 py-1.5 rounded-xl bg-cyan-600 text-white text-[11px] font-bold flex items-center gap-1 shrink-0 active:scale-95 shadow-sm"
+                      >
+                        <Navigation className="w-3 h-3 fill-white stroke-none" />
+                        <span>Route</span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Matching Rooms Results */}
             {matchingRooms.length > 0 && (
               <div className="pt-3 space-y-2">
                 <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                  ROOMS & LABS ({matchingRooms.length})
+                  CAMPUS SPACES & LABS ({matchingRooms.length})
                 </div>
                 {matchingRooms.map((room) => (
                   <div
@@ -336,14 +493,14 @@ export const MobileSearchBar: React.FC<MobileSearchBarProps> = ({ onSelectResult
             )}
 
             {/* No Results Found */}
-            {q !== '' && matchingRooms.length === 0 && matchingBuildings.length === 0 && (
+            {q !== '' && matchingRooms.length === 0 && matchingBuildings.length === 0 && matchingFaculty.length === 0 && matchingClassrooms.length === 0 && (
               <div className="p-8 text-center space-y-2">
                 <div className="w-10 h-10 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
                   <Search className="w-5 h-5" />
                 </div>
-                <div className="text-xs font-extrabold text-slate-800">No matching spaces found</div>
+                <div className="text-xs font-extrabold text-slate-800">No matching spaces or faculty found</div>
                 <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
-                  Try searching for &quot;Lab 204&quot;, &quot;Library&quot;, &quot;Cafeteria&quot;, &quot;Auditorium&quot;, or &quot;C-04&quot;.
+                  Try searching for &quot;Anugha&quot;, &quot;Room 217&quot;, &quot;Dr Swathika&quot;, &quot;317&quot;, &quot;AB2&quot;, &quot;Lab 204&quot;, or &quot;Library&quot;.
                 </p>
               </div>
             )}

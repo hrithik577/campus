@@ -11,6 +11,10 @@ import { MobileRoomSheet } from '../../components/explorer/MobileRoomSheet';
 import { MobileCrowdSheet } from '../../components/crowd/MobileCrowdSheet';
 import { MobileLayersSheet } from '../../components/map/MobileLayersSheet';
 import { MobileNavOverlay } from '../../components/navigation/MobileNavOverlay';
+import { FacultyDirectorySheet } from '../../components/faculty/FacultyDirectorySheet';
+import { FacultyProfileSheet } from '../../components/faculty/FacultyProfileSheet';
+import { ClassroomDirectorySheet } from '../../components/faculty/ClassroomDirectorySheet';
+import { ClassroomDetailSheet } from '../../components/faculty/ClassroomDetailSheet';
 import { useCampusStore } from '../../services/campusStore';
 import { Search, MapPin, Layers, Activity } from 'lucide-react';
 
@@ -27,7 +31,19 @@ export default function ExplorePage() {
     setLayersOpen,
     isCrowdOpen,
     setCrowdOpen,
-    isLiveNavActive
+    isLiveNavActive,
+    selectedFacultyId,
+    setSelectedFacultyId,
+    selectedClassroomId,
+    setSelectedClassroomId,
+    isFacultyDirectoryOpen,
+    setFacultyDirectoryOpen,
+    isFacultyProfileOpen,
+    setFacultyProfileOpen,
+    isClassroomDirectoryOpen,
+    setClassroomDirectoryOpen,
+    isClassroomDetailOpen,
+    setClassroomDetailOpen,
   } = useCampusStore();
 
   const containerHeightClass = isLiveNavActive 
@@ -131,6 +147,38 @@ export default function ExplorePage() {
       <MobileCrowdSheet
         isOpen={isCrowdOpen && !isLiveNavActive}
         onClose={() => setCrowdOpen(false)}
+      />
+
+      {/* 6. Faculty Directory Sheet */}
+      <FacultyDirectorySheet
+        isOpen={Boolean(isFacultyDirectoryOpen && !isLiveNavActive)}
+        onClose={() => setFacultyDirectoryOpen(false)}
+      />
+
+      {/* 7. Faculty Profile Sheet */}
+      <FacultyProfileSheet
+        isOpen={Boolean(selectedFacultyId && isFacultyProfileOpen && !isLiveNavActive)}
+        onClose={() => {
+          setFacultyProfileOpen(false);
+          setSelectedFacultyId(null);
+        }}
+        facultyId={selectedFacultyId}
+      />
+
+      {/* 8. Classroom Directory Sheet */}
+      <ClassroomDirectorySheet
+        isOpen={Boolean(isClassroomDirectoryOpen && !isLiveNavActive)}
+        onClose={() => setClassroomDirectoryOpen(false)}
+      />
+
+      {/* 9. Classroom Detail Sheet */}
+      <ClassroomDetailSheet
+        isOpen={Boolean(selectedClassroomId && isClassroomDetailOpen && !isLiveNavActive)}
+        onClose={() => {
+          setClassroomDetailOpen(false);
+          setSelectedClassroomId(null);
+        }}
+        roomId={selectedClassroomId}
       />
 
     </div>

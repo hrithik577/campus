@@ -1,13 +1,82 @@
 import { INITIAL_BUILDINGS, INITIAL_FACILITIES } from '../data/mockCampusData';
 import { calculateCampusRoute } from './navigationService';
 import { AIResponse } from '../types/campus';
+import { facultyService } from './facultyService';
 
 export function processAIQuery(query: string): AIResponse {
   const q = query.toLowerCase().trim();
   const id = `ai-msg-${Date.now()}`;
 
+  // ── 0. ACADEMIC INTELLIGENCE: Faculty & Classroom Inquiries ──
+  // A. Check for specific faculty members
+  const matchedFaculty = facultyService.getAllFaculty().find(f => {
+    const nameLower = f.name.toLowerCase();
+    const cleanName = nameLower.replace(/^(dr\.|prof\.)\s*/, '');
+    const parts = cleanName.split(' ');
+    return q.includes(cleanName) || parts.some(p => p.length > 3 && q.includes(p));
+  });
+
+  if (matchedFaculty) {
+    const avail = facultyService.getFacultyAvailability(matchedFaculty.id);
+    const statusDot = matchedFaculty.isAvailable ? '🟢 Available' : matchedFaculty.availabilityStatus === 'in_class' ? '🟡 In Class' : '🔴 Busy';
+    const route = calculateCampusRoute('node-north-gate', matchedFaculty.buildingId || 'ab2-block');
+
+    return {
+      id,
+      text: `**Faculty Profile: ${matchedFaculty.name}**\n\n• **Designation**: ${matchedFaculty.designation}\n• **Department**: ${matchedFaculty.department || 'Computer Science & Engineering'}\n• **Subject**: ${matchedFaculty.subject}\n• **Location**: **Room ${matchedFaculty.roomNo}**, Floor ${matchedFaculty.floor}, ${matchedFaculty.block} Block (${matchedFaculty.buildingName})\n• **Live Status**: ${statusDot} — ${avail.details}\n• **Office Hours**: ${matchedFaculty.officeHours || 'Check schedule'}\n\n📍 Walking Distance to ${matchedFaculty.block} Block: **${route?.totalDistanceMeters || 220} m** (~${route?.estimatedWalkingMinutes || 3} min walk).`,
+      highlightBuildingId: matchedFaculty.buildingId || 'ab2-block',
+      suggestedAction: {
+        label: `Navigate to Room ${matchedFaculty.roomNo} (${matchedFaculty.name})`,
+        type: 'navigate',
+        targetId: matchedFaculty.buildingId || 'ab2-block'
+      }
+    };
+  }
+
+  // B. Check for room number query (e.g., "room 217", "217", "room 317", "317", "who is in 217")
+  const roomMatch = q.match(/(?:room\s*|cabin\s*|no\.?\s*)?(\b(?:217|317|201|202|301|215)\b)/);
+  if (roomMatch || q.includes('217') || q.includes('317') || q.includes('201')) {
+    const targetRoomNo = roomMatch ? roomMatch[1] : q.includes('217') ? '217' : q.includes('317') ? '317' : '201';
+    const roomRecord = facultyService.getClassroomByRoomNumber(targetRoomNo);
+    const facultyInRoom = facultyService.getFacultyForRoom(targetRoomNo);
+    const route = calculateCampusRoute('node-north-gate', roomRecord?.buildingId || 'ab2-block');
+
+    const facultyDetails = facultyInRoom.length > 0
+      ? facultyInRoom.map(f => `  • **${f.name}** (${f.designation} - ${f.subject}) — ${f.isAvailable ? '🟢 Available' : '🔴 Busy / In Class'}`).join('\n')
+      : '  • No permanent faculty assigned (Lecture Hall).';
+
+    return {
+      id,
+      text: `**Room ${targetRoomNo} Details (${roomRecord?.block || 'AB2'} Block)**:\n\n• **Building**: ${roomRecord?.buildingName || 'AB2 Academic Block'}, Floor ${roomRecord?.floor || 2}\n• **Room Type**: ${roomRecord?.type === 'faculty_room' ? 'Faculty Cabin' : 'Classroom'}\n• **Room Status**: ${roomRecord?.currentStatus === 'available' ? '🟢 Available' : '🔴 Occupied'} (Capacity: ${roomRecord?.capacity || 6} seats)\n• **Assigned Faculty Members**:\n${facultyDetails}\n\n📍 Walking Distance: **${route?.totalDistanceMeters || 220} m** (~${route?.estimatedWalkingMinutes || 3} min walk)\n🕒 Schedule: ${roomRecord?.nextClass || 'No classes currently scheduled'}.`,
+      highlightBuildingId: roomRecord?.buildingId || 'ab2-block',
+      suggestedAction: {
+        label: `Navigate to Room ${targetRoomNo}`,
+        type: 'navigate',
+        targetId: roomRecord?.buildingId || 'ab2-block'
+      }
+    };
+  }
+
+  // C. Check for general faculty or classroom inquiries
+  if (q.includes('faculty') || q.includes('teacher') || q.includes('professor') || (q.includes('classroom') && !q.includes('hostel'))) {
+    const availableFaculty = facultyService.getAvailableFaculty();
+    const allFaculty = facultyService.getAllFaculty();
+    const route = calculateCampusRoute('node-north-gate', 'ab2-block');
+
+    return {
+      id,
+      text: `**AB2 Block Academic Intelligence Directory**:\n\n• **Total Registered Faculty**: ${allFaculty.length} professors across Floors 2 & 3\n• **Currently Available**: **${availableFaculty.length} Faculty Members**\n\n**Key Faculty Rooms**:\n• **Room 217 (Floor 2)**: Anugha (Available 🟢), Pranav Gaur (In Class 🟡), Senthil Jagran (Available 🟢)\n• **Room 317 (Floor 3)**: Dr. Swathika (Available 🟢), Rajat Bharadwaj (Busy 🔴)\n• **Room 201 (Floor 2)**: Dr. Palle Prathapa Reddy (Busy 🔴), Ashok Babu (Available 🟢)\n\n📍 Located in **AB2 Academic Block** (**${route?.totalDistanceMeters || 220} m** from North Gate).`,
+      highlightBuildingId: 'ab2-block',
+      suggestedAction: {
+        label: 'Navigate to AB2 Academic Block',
+        type: 'navigate',
+        targetId: 'ab2-block'
+      }
+    };
+  }
+
   // 1. Hostel Inquiries
-  if (q.includes('hostel') || q.includes('hostell') || q.includes('room') || q.includes('residence') || q.includes('warden')) {
+  if (q.includes('hostel') || q.includes('hostell') || q.includes('hostel room') || q.includes('residence') || q.includes('warden')) {
     const isHostelB = q.includes('girl') || q.includes('women') || q.includes('chawla') || q.includes('hostel b');
     const bldgId = isHostelB ? 'hostel-b' : 'hostel-a';
     const targetBldg = INITIAL_BUILDINGS.find(b => b.id === bldgId) || INITIAL_BUILDINGS.find(b => b.category === 'hostels');

@@ -21,13 +21,57 @@ export type OperationalStatus = 'operational' | 'available' | 'crowded' | 'maint
 
 export type CrowdLevel = 'low' | 'medium' | 'high';
 
+export type FacultyAvailability = 'available' | 'busy' | 'in_class' | 'offline';
+
+export interface FacultyScheduleSlot {
+  time: string;
+  label: string;
+  type: 'class' | 'office_hours' | 'meeting' | 'free' | 'busy';
+  roomNumber?: string;
+}
+
 export interface Faculty {
   id: string;
   name: string;
   designation: string;
   subject?: string;
+  department?: string;
   isAvailable: boolean;
+  availabilityStatus?: FacultyAvailability;
   avatarColor: string; // tailwind bg color class
+  roomId?: string;
+  roomNo?: string;
+  buildingId?: string;
+  buildingName?: string;
+  block?: string;
+  floor?: number;
+  officeHours?: string;
+  scheduleToday?: FacultyScheduleSlot[];
+  email?: string;
+  phone?: string;
+}
+
+export type RoomCurrentStatus = 'available' | 'occupied' | 'reserved' | 'maintenance';
+
+export interface ClassroomRecord {
+  id: string;
+  roomNumber: string;
+  buildingId: string;
+  buildingName: string;
+  block: string;
+  floor: number;
+  type: 'classroom' | 'faculty_room' | 'lab' | 'seminar_hall';
+  capacity: number;
+  facultyIds: string[];
+  currentStatus: RoomCurrentStatus;
+  nextClass?: string;
+  availableFrom?: string;
+  schedule?: {
+    time: string;
+    subject: string;
+    facultyName?: string;
+    status: 'ongoing' | 'upcoming' | 'completed' | 'free';
+  }[];
 }
 
 export interface FacultyRoom {

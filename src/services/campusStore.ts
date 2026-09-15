@@ -78,6 +78,14 @@ class CampusStore {
   private currentNavStepIndex: number = 0;
   private isArrivalModalOpen: boolean = false;
 
+  // Faculty & Classroom Intelligence Module state
+  private selectedFacultyId: string | null = null;
+  private selectedClassroomId: string | null = null;
+  private isFacultyDirectoryOpen: boolean = false;
+  private isFacultyProfileOpen: boolean = false;
+  private isClassroomDirectoryOpen: boolean = false;
+  private isClassroomDetailOpen: boolean = false;
+
   private listeners: Set<() => void> = new Set();
 
   constructor() {
@@ -462,6 +470,50 @@ class CampusStore {
     this.notify();
   }
 
+  // Faculty & Classroom Intelligence Getters & Setters
+  public getSelectedFacultyId() { return this.selectedFacultyId; }
+  public getSelectedClassroomId() { return this.selectedClassroomId; }
+  public getIsFacultyDirectoryOpen() { return this.isFacultyDirectoryOpen; }
+  public getIsFacultyProfileOpen() { return this.isFacultyProfileOpen; }
+  public getIsClassroomDirectoryOpen() { return this.isClassroomDirectoryOpen; }
+  public getIsClassroomDetailOpen() { return this.isClassroomDetailOpen; }
+
+  public setSelectedFacultyId(id: string | null) {
+    this.selectedFacultyId = id;
+    if (id) {
+      this.isFacultyProfileOpen = true;
+    }
+    this.notify();
+  }
+
+  public setSelectedClassroomId(id: string | null) {
+    this.selectedClassroomId = id;
+    if (id) {
+      this.isClassroomDetailOpen = true;
+    }
+    this.notify();
+  }
+
+  public setFacultyDirectoryOpen(open: boolean) {
+    this.isFacultyDirectoryOpen = open;
+    this.notify();
+  }
+
+  public setFacultyProfileOpen(open: boolean) {
+    this.isFacultyProfileOpen = open;
+    this.notify();
+  }
+
+  public setClassroomDirectoryOpen(open: boolean) {
+    this.isClassroomDirectoryOpen = open;
+    this.notify();
+  }
+
+  public setClassroomDetailOpen(open: boolean) {
+    this.isClassroomDetailOpen = open;
+    this.notify();
+  }
+
   // Admin and Student Mutation Actions
   public addReport(newReport: Omit<MaintenanceReport, 'id' | 'createdAt' | 'updatedAt' | 'status'>): MaintenanceReport {
     const reportId = `CT-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -591,6 +643,12 @@ export function useCampusStore() {
     isLiveNavActive: campusStore.getIsLiveNavActive(),
     currentNavStepIndex: campusStore.getCurrentNavStepIndex(),
     isArrivalModalOpen: campusStore.getIsArrivalModalOpen(),
+    selectedFacultyId: campusStore.getSelectedFacultyId(),
+    selectedClassroomId: campusStore.getSelectedClassroomId(),
+    isFacultyDirectoryOpen: campusStore.getIsFacultyDirectoryOpen(),
+    isFacultyProfileOpen: campusStore.getIsFacultyProfileOpen(),
+    isClassroomDirectoryOpen: campusStore.getIsClassroomDirectoryOpen(),
+    isClassroomDetailOpen: campusStore.getIsClassroomDetailOpen(),
 
     // Dispatchers
     setCurrentUser: (user: UserProfile | null) => campusStore.setCurrentUser(user),
@@ -622,6 +680,12 @@ export function useCampusStore() {
     setNavPanelOpen: (open: boolean) => campusStore.setNavPanelOpen(open),
     setLayersOpen: (open: boolean) => campusStore.setLayersOpen(open),
     setCrowdOpen: (open: boolean) => campusStore.setCrowdOpen(open),
+    setSelectedFacultyId: (id: string | null) => campusStore.setSelectedFacultyId(id),
+    setSelectedClassroomId: (id: string | null) => campusStore.setSelectedClassroomId(id),
+    setFacultyDirectoryOpen: (open: boolean) => campusStore.setFacultyDirectoryOpen(open),
+    setFacultyProfileOpen: (open: boolean) => campusStore.setFacultyProfileOpen(open),
+    setClassroomDirectoryOpen: (open: boolean) => campusStore.setClassroomDirectoryOpen(open),
+    setClassroomDetailOpen: (open: boolean) => campusStore.setClassroomDetailOpen(open),
     addReport: (rep: Omit<MaintenanceReport, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => campusStore.addReport(rep),
     updateReportStatus: (id: string, st: MaintenanceReport['status'], tech?: string) => campusStore.updateReportStatus(id, st, tech),
     updateBuildingStatus: (id: string, st: Building['status'], occ?: number, crd?: Building['crowdLevel']) => campusStore.updateBuildingStatus(id, st, occ, crd),
